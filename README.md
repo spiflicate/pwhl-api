@@ -84,6 +84,7 @@ bun run lint
 bun run typecheck
 bun run build
 bun run drift          # compare live response shapes with the baseline
+bun run check:package  # publint + are-the-types-wrong on the packed tarball
 ```
 
 `test/fixtures` holds trimmed responses captured from the live feed. `test/unit/fixture-types.test.ts` checks each one against its response type, so `bun run typecheck` fails if a type claims a field the feed does not send, types it wrongly, or leaves out a field the feed sends.
@@ -101,6 +102,21 @@ When the feed really has changed:
 3. Accept the new shapes with `bun run drift --update` and commit the baseline.
 
 `test/unit/drift.test.ts` fails if a public function has no drift check, or if the fixtures contain fields the baseline lacks.
+
+### Releasing
+
+1. Move the `Unreleased` notes in `CHANGELOG.md` under the new version.
+2. Bump the version and tag it: `npm version patch` (or `minor`/`major`).
+3. Push the commit and tag: `git push --follow-tags`.
+
+The **Release** workflow checks that the tag matches `package.json`, runs the full CI suite and `check:package`, publishes to npm, and creates a GitHub release. It uses [npm trusted publishing](https://docs.npmjs.com/trusted-publishers), so there is no npm token in the repo, and npm adds provenance automatically.
+
+One-time setup:
+
+1. Publish the first version by hand (`npm publish`), since trusted publishing is configured on an existing package.
+2. On npmjs.com, open the package's **Settings → Trusted publishing** and add GitHub Actions with user `spiflicate`, repository `pwhl-api` and workflow `release.yml`.
+3. Under **Publishing access**, choose "Require two-factor authentication and disallow tokens".
+4. Push the `v0.1.0` tag. The workflow sees that 0.1.0 is already on npm, skips the publish and creates the GitHub release.
 
 ## License
 
