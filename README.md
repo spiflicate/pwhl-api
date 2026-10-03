@@ -84,6 +84,7 @@ bun run lint
 bun run typecheck
 bun run build
 bun run drift          # compare live response shapes with the baseline
+bun run check:package  # publint + are-the-types-wrong on the packed tarball
 ```
 
 `test/fixtures` holds trimmed responses captured from the live feed. `test/unit/fixture-types.test.ts` checks each one against its response type, so `bun run typecheck` fails if a type claims a field the feed does not send, types it wrongly, or leaves out a field the feed sends.
@@ -101,6 +102,14 @@ When the feed really has changed:
 3. Accept the new shapes with `bun run drift --update` and commit the baseline.
 
 `test/unit/drift.test.ts` fails if a public function has no drift check, or if the fixtures contain fields the baseline lacks.
+
+### Releasing
+
+1. Move the `Unreleased` notes in `CHANGELOG.md` under the new version.
+2. Bump the version and tag it: `npm version patch` (or `minor`/`major`).
+3. Push the commit and tag: `git push --follow-tags`.
+
+The **Release** workflow checks that the tag matches `package.json`, runs the full CI suite and `check:package`, publishes to npm with provenance, and creates a GitHub release. It needs an `NPM_TOKEN` repository secret.
 
 ## License
 

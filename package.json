@@ -8,16 +8,26 @@
    "type": "module",
    "exports": {
       ".": {
-         "types": "./lib/index.d.ts",
-         "require": "./lib/index.cjs",
-         "import": "./lib/index.js"
-      }
+         "import": {
+            "types": "./lib/index.d.ts",
+            "default": "./lib/index.js"
+         },
+         "require": {
+            "types": "./lib/index.d.cts",
+            "default": "./lib/index.cjs"
+         }
+      },
+      "./package.json": "./package.json"
    },
+   "sideEffects": false,
    "files": [
       "lib",
       "README.md",
       "LICENSE"
    ],
+   "engines": {
+      "node": ">=18"
+   },
    "scripts": {
       "build": "bunx tsup",
       "dev": "bunx tsup --watch",
@@ -27,7 +37,8 @@
       "test": "bun test",
       "test:watch": "bun test --watch",
       "drift": "bun scripts/check-drift.ts",
-      "prepublishOnly": "bun run build"
+      "prepublishOnly": "bun run build",
+      "check:package": "bunx publint && bunx @arethetypeswrong/cli --pack ."
    },
    "keywords": [
       "pwhl",
@@ -43,7 +54,7 @@
    "license": "MIT",
    "repository": {
       "type": "git",
-      "url": "https://github.com/spiflicate/pwhl-api.git"
+      "url": "git+https://github.com/spiflicate/pwhl-api.git"
    },
    "bugs": {
       "url": "https://github.com/spiflicate/pwhl-api/issues"
@@ -57,5 +68,8 @@
    },
    "dependencies": {
       "arktype": "^2.2.3"
+   },
+   "publishConfig": {
+      "access": "public"
    }
 }
