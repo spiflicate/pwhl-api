@@ -1,6 +1,11 @@
-# Publishes to npm when a version tag (v1.2.3) is pushed. The tag must
-# match package.json's version. Needs an NPM_TOKEN repository secret
-# (an npm automation or granular token with publish rights).
+# Publishes to npm when a version tag (v1.2.3) is pushed, using npm
+# trusted publishing (OIDC): no npm token is stored in the repo. The tag
+# must match package.json's version.
+#
+# One-time setup on npmjs.com (package Settings -> Trusted publishing):
+# GitHub Actions, user spiflicate, repo pwhl-api, workflow release.yml.
+# Then set Publishing access to "Require two-factor authentication and
+# disallow tokens". Trusted publishing needs Node >= 22.14 and npm >= 11.5.1.
 name: Release
 
 on:
@@ -9,7 +14,7 @@ on:
 
 permissions:
   contents: write # create the GitHub release
-  id-token: write # npm provenance
+  id-token: write # npm trusted publishing and provenance
 
 concurrency:
   group: release
@@ -23,8 +28,9 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org
+          package-manager-cache: false # no caching in release builds
 
       - name: Check the tag matches package.json
         run: |
@@ -41,10 +47,20 @@ jobs:
       - run: bun run build
       - run: bun run check:package
 
+      # Trusted publishing needs npm 11.5.1 or later.
+      - run: npm install -g npm@^11.5.1
+
+      # Skips a version that is already on npm, so the first release can be
+      # published by hand and still get its GitHub release from this workflow.
       - name: Publish to npm
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          name=$(node -p "require('./package.json').name")
+          version=$(node -p "require('./package.json').version")
+          if npm view "$name@$version" version >/dev/null 2>&1; then
+            echo "$name@$version is already on npm, skipping publish"
+          else
+            npm publish
+          fi
 
       - name: Create the GitHub release
         env:

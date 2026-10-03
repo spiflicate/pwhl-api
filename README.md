@@ -109,7 +109,14 @@ When the feed really has changed:
 2. Bump the version and tag it: `npm version patch` (or `minor`/`major`).
 3. Push the commit and tag: `git push --follow-tags`.
 
-The **Release** workflow checks that the tag matches `package.json`, runs the full CI suite and `check:package`, publishes to npm with provenance, and creates a GitHub release. It needs an `NPM_TOKEN` repository secret.
+The **Release** workflow checks that the tag matches `package.json`, runs the full CI suite and `check:package`, publishes to npm, and creates a GitHub release. It uses [npm trusted publishing](https://docs.npmjs.com/trusted-publishers), so there is no npm token in the repo, and npm adds provenance automatically.
+
+One-time setup:
+
+1. Publish the first version by hand (`npm publish`), since trusted publishing is configured on an existing package.
+2. On npmjs.com, open the package's **Settings → Trusted publishing** and add GitHub Actions with user `spiflicate`, repository `pwhl-api` and workflow `release.yml`.
+3. Under **Publishing access**, choose "Require two-factor authentication and disallow tokens".
+4. Push the `v0.1.0` tag. The workflow sees that 0.1.0 is already on npm, skips the publish and creates the GitHub release.
 
 ## License
 
