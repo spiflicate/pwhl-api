@@ -80,9 +80,24 @@ bun scripts/trim-fixtures.ts <capture-dir>   # refresh test/fixtures from new ca
 bun run lint
 bun run typecheck
 bun run build
+bun run drift          # compare live response shapes with the baseline
 ```
 
 `test/fixtures` holds trimmed responses captured from the live feed. `test/unit/fixture-types.test.ts` assigns them to the response types, so `bun run typecheck` fails if a type drifts from what the feed sends.
+
+### Feed drift check
+
+The PWHL feed is undocumented and can change without notice. `bun run drift` calls every public function against the live feed (with ids for finished games and seasons) and compares each response's structure with `scripts/drift/baseline.json`. It fails when an endpoint stops answering, an error response changes, or a field is added, removed or changes type. Values are ignored, and so are fields that turn `null`.
+
+The **Feed drift** workflow runs it daily and on demand (Actions → Feed drift → Run workflow). A failure opens one `feed-drift` issue with the report, which the next passing run closes. It is separate from CI, so upstream changes never block a PR.
+
+When the feed really has changed:
+
+1. Update the types in `src/types/`.
+2. Recapture and trim the fixtures (`bun scripts/trim-fixtures.ts <capture-dir>`), so `bun run typecheck` checks the new types.
+3. Accept the new shapes with `bun run drift --update` and commit the baseline.
+
+`test/unit/drift.test.ts` fails if a public function has no drift check, or if the fixtures contain fields the baseline lacks.
 
 ## License
 
