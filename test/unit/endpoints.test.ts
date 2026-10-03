@@ -100,7 +100,7 @@ describe('teams', () => {
             { player_id: '21', position: 'F', name: 'Forward' },
             { player_id: '22', position: 'D', name: 'Defender' },
             { player_id: '23', position: 'G', name: 'Goalie' },
-            { person_id: '900', name: 'Head Coach', role: 'Head Coach' },
+            [{ person_id: '900', name: 'Coach', role: 'Head Coach' }],
          ]),
       );
       const r = await teams.roster(3, 8);

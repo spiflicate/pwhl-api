@@ -22,7 +22,7 @@ export interface Bootstrap {
       id: NumericString;
       name: string;
       start_date: string;
-      hide_in_standings?: NumericBoolean;
+      hide_in_standings?: boolean;
       [key: string]: unknown;
    }>;
    conferences: Array<Record<string, unknown>>;

@@ -80,7 +80,17 @@ export async function get<T>(
       });
 
       if (!response.ok) {
-         return fail(errorFromStatus(response, { endpoint: url }));
+         const body = await response.text().catch(() => '');
+         return fail(
+            errorFromStatus(
+               response,
+               {
+                  endpoint: url,
+                  responseBody: body,
+               },
+               bodyErrorMessage(body),
+            ),
+         );
       }
 
       const text = await response.text();
@@ -184,6 +194,19 @@ export function parseBody(
    }
 
    return { success: true, data };
+}
+
+/** The `error` field of a JSON error body, e.g. {"error": "No such game"} */
+function bodyErrorMessage(body: string): string | undefined {
+   try {
+      const parsed: unknown = JSON.parse(body);
+      if (isRecord(parsed) && typeof parsed.error === 'string') {
+         return parsed.error;
+      }
+   } catch {
+      // not JSON
+   }
+   return undefined;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

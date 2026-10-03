@@ -76,10 +76,13 @@ configure({ language: 'fr', timeout: 5000, logLevel: 'silent' });
 bun install
 bun test               # unit tests (mocked fetch)
 PWHL_LIVE=1 bun test test/integration   # live checks, needs network access
+bun scripts/trim-fixtures.ts <capture-dir>   # refresh test/fixtures from new captures
 bun run lint
 bun run typecheck
 bun run build
 ```
+
+`test/fixtures` holds trimmed responses captured from the live feed. `test/unit/fixture-types.test.ts` assigns them to the response types, so `bun run typecheck` fails if a type drifts from what the feed sends.
 
 ## License
 

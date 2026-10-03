@@ -44,7 +44,7 @@ export async function roster(
 ): Promise<APIResult<Roster>> {
    const v = validate(RosterParams, { teamId, seasonId }, label(p.roster));
    if (!v.ok) return v.result;
-   const result = await get<Array<Record<string, unknown>>>(p.roster, {
+   const result = await get<unknown[]>(p.roster, {
       team_id: v.value.teamId,
       season_id: v.value.seasonId,
    });
@@ -53,26 +53,28 @@ export async function roster(
 }
 
 /**
- * The feed returns players and staff in one array, staff last. Player
- * rows have a skater or goalie position; staff rows do not.
+ * The feed returns players followed by one nested array of staff
+ * (coaches, managers): `[player, player, ..., [staff, staff]]`.
  */
-export function splitRoster(rows: Array<Record<string, unknown>>): Roster {
+export function splitRoster(rows: unknown[]): Roster {
    const players: RosterPlayer[] = [];
    const staff: RosterStaff[] = [];
    for (const row of rows) {
-      if (isPlayerRow(row)) players.push(row as RosterPlayer);
-      else staff.push(row);
+      if (Array.isArray(row)) {
+         staff.push(...(row.filter(isObject) as RosterStaff[]));
+      } else if (isObject(row)) {
+         if (typeof row.role === 'string' || !row.player_id) {
+            staff.push(row as RosterStaff);
+         } else {
+            players.push(row as RosterPlayer);
+         }
+      }
    }
    return { players, staff };
 }
 
-const PLAYER_POSITIONS = new Set(['F', 'C', 'LW', 'RW', 'D', 'G']);
-
-function isPlayerRow(row: Record<string, unknown>): boolean {
+function isObject(value: unknown): value is Record<string, unknown> {
    return (
-      typeof row.player_id === 'string' &&
-      row.player_id !== '' &&
-      typeof row.position === 'string' &&
-      PLAYER_POSITIONS.has(row.position.toUpperCase())
+      typeof value === 'object' && value !== null && !Array.isArray(value)
    );
 }

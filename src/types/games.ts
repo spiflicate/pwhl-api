@@ -94,21 +94,25 @@ export interface GameSummary {
 }
 
 interface PbpBase {
-   /** "mm:ss" into the period */
-   time: string;
    /** Seconds into the period */
    s: number;
    [key: string]: unknown;
 }
 
-export interface PbpGoalieChange extends PbpBase {
+interface PbpTimed extends PbpBase {
+   /** Time into the period, "m:ss" or "hh:mm:ss" */
+   time: string;
+}
+
+export interface PbpGoalieChange extends PbpTimed {
    event: 'goalie_change';
    goalie_in_id: NumericString;
-   goalie_out_id: NumericString;
+   /** null when no goalie was in net (start of a period) */
+   goalie_out_id: NumericString | null;
    team_id: NumericString;
 }
 
-export interface PbpFaceoff extends PbpBase {
+export interface PbpFaceoff extends PbpTimed {
    event: 'faceoff';
    home_player_id: NumericString;
    visitor_player_id: NumericString;
@@ -118,7 +122,7 @@ export interface PbpFaceoff extends PbpBase {
    y_location: number;
 }
 
-export interface PbpShot extends PbpBase {
+export interface PbpShot extends PbpTimed {
    event: 'shot';
    player_id: NumericString;
    goalie_id: NumericString;
@@ -137,7 +141,7 @@ export interface PbpBlockedShot extends Omit<PbpShot, 'event'> {
    blocker_team_id: NumericString;
 }
 
-export interface PbpHit extends PbpBase {
+export interface PbpHit extends PbpTimed {
    event: 'hit';
    player_id: NumericString;
    team_id: NumericString;
@@ -147,6 +151,8 @@ export interface PbpHit extends PbpBase {
 
 export interface PbpPenalty extends PbpBase {
    event: 'penalty';
+   /** Period time the penalty was called, "m:ss" */
+   time_off_formatted: string;
    player_id: NumericString;
    team_id: NumericString;
    period_id: NumericString;
@@ -155,7 +161,7 @@ export interface PbpPenalty extends PbpBase {
    lang_penalty_description: string;
 }
 
-export interface PbpGoal extends PbpBase {
+export interface PbpGoal extends PbpTimed {
    event: 'goal';
    team_id: NumericString;
    period_id: NumericString;
@@ -173,6 +179,18 @@ export interface PbpGoal extends PbpBase {
    goal_scorer: PlayerInfo;
 }
 
+export interface PbpShootout extends PbpBase {
+   event: 'shootout';
+   player_id: NumericString;
+   team_id: NumericString;
+   goalie_id: NumericString;
+   shot_order: NumericString;
+   goal: NumericBoolean;
+   winning_goal: NumericBoolean;
+   shooter_info: PlayerInfo;
+   goalie_info: PlayerInfo;
+}
+
 /** gc `pxpverbose` event, discriminated on `event` */
 export type PlayByPlayEvent =
    | PbpGoalieChange
@@ -181,7 +199,8 @@ export type PlayByPlayEvent =
    | PbpBlockedShot
    | PbpHit
    | PbpPenalty
-   | PbpGoal;
+   | PbpGoal
+   | PbpShootout;
 
 export interface ClockTeam {
    team_id: NumericString;

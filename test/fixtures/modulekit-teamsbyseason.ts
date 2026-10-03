@@ -1,0 +1,61 @@
+// Captured from the live feed on 2026-10-03, trimmed by scripts/trim-fixtures.ts
+export default {
+   SiteKit: {
+      Parameters: {
+         feed: 'modulekit',
+         view: 'teamsbyseason',
+         fmt: 'json',
+         lang: 'en',
+         key: '446521baf8c38984',
+         client_code: 'pwhl',
+         season_id: 8,
+         lang_id: 1,
+         league_id: '1',
+      },
+      Teamsbyseason: [
+         {
+            id: '1',
+            name: 'Boston Fleet',
+            city: 'Boston',
+            code: 'BOS',
+            nickname: 'Fleet',
+            team_caption: '',
+            division_id: '1',
+            division_long_name: 'PWHL',
+            division_short_name: 'PWHL',
+            team_logo_url: 'https://assets.leaguestat.com/pwhl/logos/1.png',
+         },
+         {
+            id: '2',
+            name: 'Minnesota Frost',
+            city: 'Minnesota',
+            code: 'MIN',
+            nickname: 'Frost',
+            team_caption: '',
+            division_id: '1',
+            division_long_name: 'PWHL',
+            division_short_name: 'PWHL',
+            team_logo_url: 'https://assets.leaguestat.com/pwhl/logos/2.jpg',
+         },
+         {
+            id: '3',
+            name: 'Montréal Victoire',
+            city: 'Montréal',
+            code: 'MTL',
+            nickname: 'Victoire',
+            team_caption: '',
+            division_id: '1',
+            division_long_name: 'PWHL',
+            division_short_name: 'PWHL',
+            team_logo_url: 'https://assets.leaguestat.com/pwhl/logos/3.png',
+         },
+      ],
+      Copyright: {
+         required_copyright:
+            "Official statistics provided by Professional Women's Hockey League",
+         required_link: 'http://leaguestat.com',
+         powered_by: 'Powered by HockeyTech.com',
+         powered_by_url: 'http://hockeytech.com',
+      },
+   },
+} as const;

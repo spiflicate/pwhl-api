@@ -142,9 +142,12 @@ export class ValidationError extends PWHLError {
 export function errorFromStatus(
    response: Response,
    context: ErrorContext = {},
+   bodyMessage?: string,
 ): PWHLError {
    const status = response.status;
-   const message = `HTTP ${status}${response.statusText ? `: ${response.statusText}` : ''}`;
+   const message =
+      bodyMessage ??
+      `HTTP ${status}${response.statusText ? `: ${response.statusText}` : ''}`;
    const ctx = { ...context, statusCode: status };
    if (status === 429) {
       const retryAfter = response.headers?.get('Retry-After');

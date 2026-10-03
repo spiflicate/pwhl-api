@@ -39,7 +39,7 @@ export interface PlayerProfile {
  * "Total" row that can carry numbers instead of strings.
  */
 export interface PlayerSeasonRow {
-   season_id?: NumericString;
+   season_id?: NumericString | number;
    season_name: string;
    team_id?: NumericString;
    team_name?: string;
@@ -63,10 +63,12 @@ export interface PlayerGameByGame {
       home: NumericBoolean;
       goals: NumericString;
       assists: NumericString;
-      points: NumericString;
+      /** A number, unlike goals and assists */
+      points: number;
       [key: string]: unknown;
    }>;
-   seasons_played: Array<{ season_id: NumericString; season_name: string }>;
+   /** season_id is a number here */
+   seasons_played: Array<{ season_id: number; season_name: string }>;
 }
 
 /** modulekit `player&category=media` item */

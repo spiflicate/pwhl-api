@@ -21,7 +21,7 @@ export interface RosterPlayer {
    last_name: string;
    name: string;
    tp_jersey_number: string;
-   /** "F", "D" or "G" */
+   /** "C", "LW", "RW", "LD", "RD", "F", "D" or "G" */
    position: string;
    shoots: string;
    catches?: string;
@@ -34,10 +34,13 @@ export interface RosterPlayer {
 
 /** A staff row from modulekit `roster` (coaches and others) */
 export interface RosterStaff {
-   person_id?: NumericString;
-   first_name?: string;
-   last_name?: string;
-   name?: string;
+   person_id: NumericString;
+   first_name: string;
+   last_name: string;
+   name: string;
+   /** e.g. "Head Coach", "General Manager" */
+   role: string;
+   role_id: NumericString;
    [key: string]: unknown;
 }
 
