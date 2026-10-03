@@ -14,20 +14,46 @@ import { diffShapes, shapeOf } from '../../scripts/drift/shape.ts';
 import clock from '../fixtures/gc-clock.ts';
 import summary from '../fixtures/gc-gamesummary.ts';
 import preview from '../fixtures/gc-preview.ts';
+import ticker from '../fixtures/gc-pxp.ts';
 import pxp from '../fixtures/gc-pxpverbose.ts';
 import brackets from '../fixtures/modulekit-brackets.ts';
+import combinedGoalies from '../fixtures/modulekit-combinedplayers-goalies.ts';
+import combinedSkaters from '../fixtures/modulekit-combinedplayers-skaters.ts';
+import gamesByDate from '../fixtures/modulekit-gamesbydate.ts';
+import gamesPerDay from '../fixtures/modulekit-gamesperday.ts';
+import goalieGameByGame from '../fixtures/modulekit-goalie-gamebygame.ts';
 import goalieSeason from '../fixtures/modulekit-goalie-seasonstats.ts';
 import gameByGame from '../fixtures/modulekit-player-gamebygame.ts';
 import media from '../fixtures/modulekit-player-media.ts';
+import recent from '../fixtures/modulekit-player-mostrecentseasonstats.ts';
 import profile from '../fixtures/modulekit-player-profile.ts';
 import playerSeason from '../fixtures/modulekit-player-seasonstats.ts';
 import roster from '../fixtures/modulekit-roster.ts';
 import schedule from '../fixtures/modulekit-schedule.ts';
+import search from '../fixtures/modulekit-searchplayers.ts';
 import seasons from '../fixtures/modulekit-seasons.ts';
+import standingsConference from '../fixtures/modulekit-standings-conference.ts';
+import standingsDivision from '../fixtures/modulekit-standings-division.ts';
+import streaks from '../fixtures/modulekit-streaks.ts';
+import teamGoalies from '../fixtures/modulekit-team-goalies.ts';
+import teamSkaters from '../fixtures/modulekit-team-skaters.ts';
 import teams from '../fixtures/modulekit-teamsbyseason.ts';
+import topGoalies from '../fixtures/modulekit-topgoalies.ts';
+import topScorers from '../fixtures/modulekit-topscorers.ts';
+import transactions from '../fixtures/modulekit-transactions.ts';
 import bootstrap from '../fixtures/statview-bootstrap.ts';
+import boxScore from '../fixtures/statview-gamesummary.ts';
+import goaliePage from '../fixtures/statview-goalie.ts';
+import leaders from '../fixtures/statview-leaders.ts';
+import events from '../fixtures/statview-playbyplay.ts';
+import playerPage from '../fixtures/statview-player.ts';
 import goalies from '../fixtures/statview-players-goalies-standard.ts';
+import skatersExpanded from '../fixtures/statview-players-skaters-expanded.ts';
 import skaters from '../fixtures/statview-players-skaters-standard.ts';
+import matchup from '../fixtures/statview-preview.ts';
+import standingsHome from '../fixtures/statview-standings-home.ts';
+import standingsOverall from '../fixtures/statview-standings-overall.ts';
+import standingsSpecial from '../fixtures/statview-standings-special.ts';
 
 describe('shapeOf', () => {
    test('merges array items and id-keyed entries', () => {
@@ -138,26 +164,82 @@ describe('drift checks', () => {
  * the same feed shape. Fixtures are trimmed, so only fields they have
  * and the baseline lacks (or retypes) count.
  */
+/** Rows of a statviewfeed table, flattened as the library returns them */
+const entries = (
+   table: readonly {
+      sections: readonly { title: string; data: readonly object[] }[];
+   }[],
+) => table[0]?.sections.flatMap((s) => s.data) ?? [];
+
+/** Standings tables as `standings.table` returns them */
+const standingsEntries = (
+   table: readonly {
+      sections: readonly {
+         title: string;
+         data: readonly { row: unknown; prop: unknown }[];
+      }[];
+   }[],
+) =>
+   table[0]?.sections.flatMap((s) =>
+      s.data.map((d) => ({ row: d.row, prop: d.prop, group: s.title })),
+   ) ?? [];
+
+/** Standings without the heading rows, as `standings.season` returns them */
+const standingsTeams = (rows: readonly object[]) =>
+   rows.filter((r) => 'team_id' in r);
+
 describe('baseline agrees with the fixtures', () => {
    const shapes: Record<string, Record<string, string>> = baseline;
    const fixtures: Record<string, unknown> = {
       'seasons.list': seasons.SiteKit.Seasons,
       'seasons.bootstrap': bootstrap,
       'schedule.season': schedule.SiteKit.Schedule,
+      'schedule.day': gamesByDate.SiteKit.Gamesbydate,
+      'schedule.gameDays': gamesPerDay.SiteKit.Gamesperday,
       'teams.bySeason': teams.SiteKit.Teamsbyseason,
       'teams.roster': splitRoster([...roster.SiteKit.Roster]),
+      'teams.skaterStats': teamSkaters.SiteKit.Statviewtype,
+      'teams.goalieStats': teamGoalies.SiteKit.Statviewtype,
       'players.profile': profile.SiteKit.Player,
       'players.seasonStats': playerSeason.SiteKit.Player,
       'players.seasonStats (goalie)': goalieSeason.SiteKit.Player,
       'players.gameByGame': gameByGame.SiteKit.Player,
+      'players.gameByGame (goalie)': goalieGameByGame.SiteKit.Player,
       'players.media': media.SiteKit.Player,
-      'stats.skaters': skaters[0].sections.flatMap((s) => s.data),
-      'stats.goalies': goalies[0].sections.flatMap((s) => s.data),
+      'players.recentStats': recent.SiteKit.Player,
+      'players.search': search.SiteKit.Searchplayers,
+      'players.page': playerPage,
+      'players.page (goalie)': goaliePage,
+      'players.transactions': transactions.SiteKit.Statviewtype,
+      'stats.skaters': entries(skaters),
+      'stats.skaters (expanded)': entries(skatersExpanded),
+      'stats.goalies': entries(goalies),
+      'stats.topScorers': topScorers.SiteKit.Statviewtype,
+      'stats.topGoalies': topGoalies.SiteKit.Statviewtype,
+      'stats.leaders': leaders,
+      'stats.skaterCategoryLeaders':
+         combinedSkaters.SiteKit.Combinedplayers,
+      'stats.goalieCategoryLeaders':
+         combinedGoalies.SiteKit.Combinedplayers,
+      'stats.streaks': streaks.SiteKit.Statviewtype,
+      'standings.season': standingsTeams(
+         standingsConference.SiteKit.Statviewtype,
+      ),
+      'standings.season (division)': standingsTeams(
+         standingsDivision.SiteKit.Statviewtype,
+      ),
+      'standings.table': standingsEntries(standingsOverall),
+      'standings.table (home)': standingsEntries(standingsHome),
+      'standings.specialTeams': standingsEntries(standingsSpecial),
       'playoffs.bracket': brackets.SiteKit.Brackets,
       'games.summary': summary.GC.Gamesummary,
       'games.playByPlay': pxp.GC.Pxpverbose,
       'games.clock': clock.GC.Clock,
       'games.preview': preview.GC.Preview,
+      'games.ticker': ticker.GC.Pxp,
+      'games.boxScore': boxScore,
+      'games.events': events,
+      'games.matchup': matchup,
    };
 
    for (const [name, data] of Object.entries(fixtures)) {

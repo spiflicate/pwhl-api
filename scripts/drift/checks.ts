@@ -9,6 +9,7 @@ import {
    playoffs,
    schedule,
    seasons,
+   standings,
    stats,
    teams,
 } from '#/api/index.ts';
@@ -21,6 +22,7 @@ const TEAM = 1;
 const GAME = 326;
 const PLAYER = 52;
 const GOALIE = 262;
+const GAME_DATE = '2026-04-25'; // GAME was played this day
 
 export interface DriftCheck {
    /** `namespace.function`, plus a variant in parentheses when needed */
@@ -64,8 +66,21 @@ export const checks: DriftCheck[] = [
       run: () => schedule.scorebar({ daysBack: 7, daysAhead: 30 }),
       volatile: true,
    },
+   { name: 'schedule.day', run: () => schedule.day(GAME_DATE) },
+   {
+      name: 'schedule.gameDays',
+      run: () => schedule.gameDays('2025-11-01', '2026-05-31'),
+   },
    { name: 'teams.bySeason', run: () => teams.bySeason(SEASON) },
    { name: 'teams.roster', run: () => teams.roster(TEAM, SEASON) },
+   {
+      name: 'teams.skaterStats',
+      run: () => teams.skaterStats(TEAM, SEASON),
+   },
+   {
+      name: 'teams.goalieStats',
+      run: () => teams.goalieStats(TEAM, SEASON),
+   },
    { name: 'players.profile', run: () => players.profile(PLAYER) },
    {
       name: 'players.seasonStats',
@@ -84,21 +99,58 @@ export const checks: DriftCheck[] = [
       run: () => players.gameByGame(GOALIE, SEASON),
    },
    { name: 'players.media', run: () => players.media(PLAYER) },
+   { name: 'players.recentStats', run: () => players.recentStats(PLAYER) },
+   {
+      name: 'players.recentStats (goalie)',
+      run: () => players.recentStats(GOALIE),
+   },
+   { name: 'players.search', run: () => players.search('smith') },
+   { name: 'players.page', run: () => players.page(PLAYER, SEASON) },
+   {
+      name: 'players.page (goalie)',
+      run: () => players.page(GOALIE, SEASON),
+   },
+   {
+      name: 'players.transactions',
+      run: () => players.transactions(SEASON),
+   },
    {
       name: 'stats.skaters',
       run: () => stats.skaters({ seasonId: SEASON }),
    },
    {
-      name: 'stats.skaters (bio)',
-      run: () => stats.skaters({ seasonId: SEASON, statsType: 'bio' }),
-   },
-   {
-      name: 'stats.skaters (extended)',
-      run: () => stats.skaters({ seasonId: SEASON, statsType: 'extended' }),
+      name: 'stats.skaters (expanded)',
+      run: () => stats.skaters({ seasonId: SEASON, statsType: 'expanded' }),
    },
    {
       name: 'stats.goalies',
       run: () => stats.goalies({ seasonId: SEASON }),
+   },
+   { name: 'stats.topScorers', run: () => stats.topScorers(SEASON) },
+   { name: 'stats.topGoalies', run: () => stats.topGoalies(SEASON) },
+   { name: 'stats.leaders', run: () => stats.leaders(SEASON) },
+   {
+      name: 'stats.skaterCategoryLeaders',
+      run: () => stats.skaterCategoryLeaders(SEASON),
+   },
+   {
+      name: 'stats.goalieCategoryLeaders',
+      run: () => stats.goalieCategoryLeaders(SEASON),
+   },
+   { name: 'stats.streaks', run: () => stats.streaks(SEASON) },
+   { name: 'standings.season', run: () => standings.season(SEASON) },
+   {
+      name: 'standings.season (division)',
+      run: () => standings.season(SEASON, { groupBy: 'division' }),
+   },
+   { name: 'standings.table', run: () => standings.table(SEASON) },
+   {
+      name: 'standings.table (home)',
+      run: () => standings.table(SEASON, { context: 'home' }),
+   },
+   {
+      name: 'standings.specialTeams',
+      run: () => standings.specialTeams(SEASON),
    },
    {
       name: 'playoffs.bracket',
@@ -108,11 +160,25 @@ export const checks: DriftCheck[] = [
    { name: 'games.playByPlay', run: () => games.playByPlay(GAME) },
    { name: 'games.clock', run: () => games.clock(GAME) },
    { name: 'games.preview', run: () => games.preview(GAME) },
+   { name: 'games.ticker', run: () => games.ticker(GAME) },
+   { name: 'games.boxScore', run: () => games.boxScore(GAME) },
+   { name: 'games.events', run: () => games.events(GAME) },
+   { name: 'games.matchup', run: () => games.matchup(GAME) },
 
    // Error behaviour the client depends on
    {
       name: 'games.summary (unknown game)',
       run: () => games.summary(99999999),
+      expectError: 'NotFoundError',
+   },
+   {
+      name: 'games.boxScore (unknown game)',
+      run: () => games.boxScore(99999999),
+      expectError: 'NotFoundError',
+   },
+   {
+      name: 'players.page (unknown player)',
+      run: () => players.page(99999999),
       expectError: 'NotFoundError',
    },
    {

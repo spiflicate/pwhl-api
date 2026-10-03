@@ -46,4 +46,19 @@ export const DayCount = type('0 <= number.integer <= 365').describe(
 );
 
 export const StatsPosition = type("'skaters' | 'goalies'");
-export const StatsType = type("'standard' | 'bio' | 'extended'");
+export const StatsType = type("'standard' | 'expanded'");
+
+/** A calendar date, YYYY-MM-DD */
+export const IsoDate = type(/^\d{4}-\d{2}-\d{2}$/).describe(
+   'a date as YYYY-MM-DD',
+);
+
+/** A search term with at least two characters */
+export const SearchTerm = type('string')
+   .pipe((s) => s.trim())
+   .to('string >= 2')
+   .describe('a search term of at least 2 characters');
+
+export const Limit = type('0 < number.integer <= 1000').describe(
+   'a whole number from 1 to 1000',
+);
