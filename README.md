@@ -26,15 +26,18 @@ const leaders = await stats.skaters({ seasonId: season.data, limit: 10 });
 const boxScore = await games.summary(210);
 ```
 
-| Namespace  | Functions                                               |
-| ---------- | ------------------------------------------------------- |
-| `seasons`  | `list`, `current`, `bootstrap`                          |
-| `schedule` | `season`, `scorebar`                                    |
-| `teams`    | `bySeason`, `roster`                                    |
-| `players`  | `profile`, `seasonStats`, `gameByGame`, `media`         |
-| `stats`    | `skaters`, `goalies`                                    |
-| `playoffs` | `bracket`                                               |
-| `games`    | `summary`, `playByPlay`, `clock`, `preview`             |
+| Namespace   | Functions                                                                                                        |
+| ----------- | ---------------------------------------------------------------------------------------------------------------- |
+| `seasons`   | `list`, `current`, `bootstrap`                                                                                   |
+| `schedule`  | `season`, `scorebar`, `day`, `gameDays`                                                                          |
+| `teams`     | `bySeason`, `roster`, `skaterStats`, `goalieStats`                                                               |
+| `players`   | `profile`, `seasonStats`, `recentStats`, `gameByGame`, `media`, `search`, `page`, `transactions`                 |
+| `stats`     | `skaters`, `goalies`, `topScorers`, `topGoalies`, `leaders`, `skaterCategoryLeaders`, `goalieCategoryLeaders`, `streaks` |
+| `standings` | `season`, `table`, `specialTeams`                                                                                |
+| `playoffs`  | `bracket`                                                                                                        |
+| `games`     | `summary`, `playByPlay`, `ticker`, `clock`, `preview`, `boxScore`, `events`, `matchup`                           |
+
+Live game data from LeagueStat's Firebase feed (running clock, live events) is not covered yet; it only returns data during the season.
 
 ### Raw values
 
@@ -83,7 +86,7 @@ bun run build
 bun run drift          # compare live response shapes with the baseline
 ```
 
-`test/fixtures` holds trimmed responses captured from the live feed. `test/unit/fixture-types.test.ts` assigns them to the response types, so `bun run typecheck` fails if a type drifts from what the feed sends.
+`test/fixtures` holds trimmed responses captured from the live feed. `test/unit/fixture-types.test.ts` checks each one against its response type, so `bun run typecheck` fails if a type claims a field the feed does not send, types it wrongly, or leaves out a field the feed sends.
 
 ### Feed drift check
 

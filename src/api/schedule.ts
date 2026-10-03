@@ -5,9 +5,15 @@
 import { type } from 'arktype';
 import { get } from '#/client/index.ts';
 import type { APIResult } from '#/client/types.ts';
-import type { ScheduleGame, ScorebarGame } from '#/types/index.ts';
+import type {
+   GameByDate,
+   GameDay,
+   ScheduleGame,
+   ScorebarGame,
+} from '#/types/index.ts';
 import {
    DayCount,
+   IsoDate,
    OptionalTeamId,
    SeasonId,
    validate,
@@ -68,5 +74,42 @@ export async function scorebar(
    return get(p.scorebar, {
       numberofdaysback: v.value.daysBack,
       numberofdaysahead: v.value.daysAhead,
+   });
+}
+
+/**
+ * Games on one date, each with its scoring summary and team records
+ * @param date - YYYY-MM-DD
+ * @example
+ * ```ts
+ * const result = await schedule.day('2026-01-10');
+ * ```
+ */
+export async function day(date: string): Promise<APIResult<GameByDate[]>> {
+   const v = validate(IsoDate, date, label(p.day));
+   if (!v.ok) return v.result;
+   return get(p.day, { fetch_date: v.value });
+}
+
+const RangeParams = type({ start: IsoDate, end: IsoDate });
+
+/**
+ * Dates with games between two dates, and how many games each has
+ * @param start - YYYY-MM-DD
+ * @param end - YYYY-MM-DD, inclusive
+ * @example
+ * ```ts
+ * const result = await schedule.gameDays('2026-12-01', '2026-12-31');
+ * ```
+ */
+export async function gameDays(
+   start: string,
+   end: string,
+): Promise<APIResult<GameDay[]>> {
+   const v = validate(RangeParams, { start, end }, label(p.gameDays));
+   if (!v.ok) return v.result;
+   return get(p.gameDays, {
+      start_date: v.value.start,
+      end_date: v.value.end,
    });
 }

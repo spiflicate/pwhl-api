@@ -24,11 +24,37 @@ const FIXTURES = [
    'modulekit-player-gamebygame',
    'modulekit-player-media',
    'modulekit-brackets',
+   'modulekit-gamesbydate',
+   'modulekit-gamesperday',
+   'modulekit-team-skaters',
+   'modulekit-team-goalies',
+   'modulekit-player-mostrecentseasonstats',
+   'modulekit-goalie-gamebygame',
+   'modulekit-searchplayers',
+   'modulekit-transactions',
+   'modulekit-topscorers',
+   'modulekit-topgoalies',
+   'modulekit-combinedplayers-skaters',
+   'modulekit-combinedplayers-goalies',
+   'modulekit-streaks',
+   'modulekit-standings-conference',
+   'modulekit-standings-division',
    'statview-bootstrap',
    'statview-players-skaters-standard',
+   'statview-players-skaters-expanded',
    'statview-players-goalies-standard',
+   'statview-leaders',
+   'statview-player',
+   'statview-goalie',
+   'statview-standings-overall',
+   'statview-standings-home',
+   'statview-standings-special',
+   'statview-gamesummary',
+   'statview-playbyplay',
+   'statview-preview',
    'gc-gamesummary',
    'gc-pxpverbose',
+   'gc-pxp',
    'gc-clock',
    'gc-preview',
    'error-unknown-view',
@@ -54,11 +80,17 @@ function sampleEvents(events: Array<{ event: string }>) {
 // biome-ignore lint/suspicious/noExplicitAny: walking arbitrary JSON
 function trim(name: string, body: any): unknown {
    const sk = body?.SiteKit;
-   if (name === 'modulekit-roster') return body; // staff rows are at the end
+   // Staff rows, goalie pseudo-rows and standings headings sit at the ends
+   if (/roster|team-goalies|standings/.test(name)) return body;
    if (sk) {
       for (const k of Object.keys(sk)) {
          if (Array.isArray(sk[k])) sk[k] = head(sk[k]);
-         else if (k === 'Player') {
+         else if (k === 'Combinedplayers' || k === 'Statviewtype') {
+            // category lists and transactions
+            for (const c of Object.keys(sk[k])) {
+               if (Array.isArray(sk[k][c])) sk[k][c] = head(sk[k][c]);
+            }
+         } else if (k === 'Player') {
             for (const g of ['regular', 'playoff', 'exhibition', 'games']) {
                const rows = sk.Player[g];
                if (Array.isArray(rows) && rows.length > KEEP + 1) {
@@ -71,6 +103,12 @@ function trim(name: string, body: any): unknown {
    }
    if (body?.GC?.Pxpverbose) {
       body.GC.Pxpverbose = sampleEvents(body.GC.Pxpverbose);
+   }
+   if (body?.GC?.Pxp) body.GC.Pxp = sampleEvents(body.GC.Pxp);
+   if (name === 'statview-playbyplay') return sampleEvents(body);
+   if (name === 'statview-player' || name === 'statview-goalie') {
+      for (const s of body.gameByGame[0].sections) s.data = head(s.data);
+      body.playerShots = head(body.playerShots);
    }
    if (name.startsWith('statview-players')) {
       for (const s of body[0].sections) s.data = head(s.data);

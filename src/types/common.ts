@@ -21,13 +21,40 @@ export const GameStatus = {
 
 export type GameStatus = (typeof GameStatus)[keyof typeof GameStatus];
 
-/** statviewfeed table layout: sections of `{ row, prop }` items */
-export interface StatviewTable<Row, Prop = Record<string, unknown>> {
-   sections: StatviewSection<Row, Prop>[];
+/**
+ * PHP serializes an empty associative array as `[]`, so objects that can
+ * be empty arrive as either the object or an empty array.
+ */
+export type PhpArray<T> = T | [];
+
+/** Column metadata for a statviewfeed table */
+export interface StatviewHeader {
+   properties: {
+      /** Row key the column shows */
+      key: string;
+      hidden: boolean;
+      /** CSS classes, e.g. "hide-mobile" */
+      class: string;
+      /** Short label, e.g. "GP" */
+      label: string;
+      /** Long label, e.g. "Games Played" */
+      title: string;
+      sortable: boolean;
+      align: string;
+      highlight: boolean;
+      sortKey: string;
+   };
 }
 
-export interface StatviewSection<Row, Prop = Record<string, unknown>> {
+/** statviewfeed table layout: sections of `{ prop, row }` items */
+export interface StatviewTable<Row, Prop, Extra = unknown> {
+   sections: StatviewSection<Row, Prop, Extra>[];
+}
+
+export interface StatviewSection<Row, Prop, Extra = unknown> {
+   /** "" for single-section tables */
    title: string;
-   headers: Record<string, unknown>;
-   data: Array<{ row: Row; prop: Prop }>;
+   /** Column metadata keyed by row key */
+   headers: Record<string, StatviewHeader>;
+   data: Array<{ prop: Prop; row: Row } & Extra>;
 }
