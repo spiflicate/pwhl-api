@@ -109,12 +109,14 @@ When the feed really has changed:
 2. Bump the version and tag it: `npm version patch` (or `minor`/`major`).
 3. Push the commit and tag: `git push --follow-tags`.
 
-The **Release** workflow checks that the tag matches `package.json`, runs the full CI suite and `check:package`, publishes to npm, and creates a GitHub release. It uses [npm trusted publishing](https://docs.npmjs.com/trusted-publishers), so there is no npm token in the repo, and npm adds provenance automatically.
+4. Approve the staged version with 2FA, on npmjs.com (the package's **Staged Packages** tab) or with `npm stage approve <stage-id>`.
+
+The **Release** workflow checks that the tag matches `package.json`, runs the full CI suite and `check:package`, stages the version on npm with provenance, and creates a GitHub release. It uses [npm trusted publishing](https://docs.npmjs.com/trusted-publishers), so there is no npm token in the repo, and [staged publishing](https://docs.npmjs.com/staged-publishing), so nothing goes live until a maintainer approves it.
 
 One-time setup:
 
 1. Publish the first version by hand (`npm publish`), since trusted publishing is configured on an existing package.
-2. On npmjs.com, open the package's **Settings → Trusted publishing** and add GitHub Actions with user `spiflicate`, repository `pwhl-api` and workflow `release.yml`.
+2. On npmjs.com, open the package's **Settings → Trusted publishing** and add GitHub Actions with user `spiflicate`, repository `pwhl-api` and workflow `release.yml`. Leave "Allow npm publish" and "Allow npm dist-tag" unchecked, so CI can only stage.
 3. Under **Publishing access**, choose "Require two-factor authentication and disallow tokens".
 4. Push the `v0.1.0` tag. The workflow sees that 0.1.0 is already on npm, skips the publish and creates the GitHub release.
 
