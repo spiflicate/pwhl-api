@@ -514,6 +514,7 @@ export default {
          isLive: true,
       },
       hockeytv_url: 'https://www.hockeytv.com',
+      hideDivisionButton: true,
       'game-summary': {
          'hide-official-numbers': true,
       },

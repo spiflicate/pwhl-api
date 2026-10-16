@@ -116,6 +116,7 @@ export interface Bootstrap {
          isLive: boolean;
       };
       hockeytv_url: string;
+      hideDivisionButton: boolean;
       'game-summary': {
          'hide-official-numbers': boolean;
       };
