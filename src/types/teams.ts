@@ -78,6 +78,8 @@ export interface RosterPlayer {
    /** e.g. "'03" */
    birthdate_year: string;
    rawbirthdate: string;
+   /** Graduation year supplied by newer roster feeds */
+   grad_year?: string;
    latest_team_id: NumericString;
    veteran_status: NumericString;
    /** "*" for veterans, otherwise "" */
