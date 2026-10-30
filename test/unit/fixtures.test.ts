@@ -80,6 +80,21 @@ describe('modulekit fixtures', () => {
       }
    });
 
+   test('teams.roster preserves graduation years from newer feeds', async () => {
+      // Synthetic values for the string field reported by scheduled CI.
+      const response = structuredClone(roster);
+      const players = response.SiteKit.Roster.map((row) =>
+         Array.isArray(row) ? row : { ...row, grad_year: '2026' },
+      );
+      fetch.respond({ SiteKit: { ...response.SiteKit, Roster: players } });
+      const r = await teams.roster(1, 8);
+      expect(r.success).toBeTrue();
+      if (r.success) {
+         expect(r.data.players[0]?.grad_year).toBe('2026');
+         expect(r.data.staff.length).toBeGreaterThan(0);
+      }
+   });
+
    test('players.profile', async () => {
       fetch.respond(profile);
       const r = await players.profile(52);

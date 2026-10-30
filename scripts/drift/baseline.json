@@ -1232,6 +1232,7 @@
       "$.players[].draft_status": "string",
       "$.players[].draftinfo": "array",
       "$.players[].first_name": "string",
+      "$.players[].grad_year": "string",
       "$.players[].h": "string",
       "$.players[].height": "string",
       "$.players[].height_hyphenated": "string",
