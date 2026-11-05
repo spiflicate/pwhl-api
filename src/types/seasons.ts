@@ -117,6 +117,10 @@ export interface Bootstrap {
       };
       hockeytv_url: string;
       hideDivisionButton: boolean;
+      /** Added by HockeyTech in 2026-11 */
+      player_stats_all_time: {
+         show_filters: boolean;
+      };
       'game-summary': {
          'hide-official-numbers': boolean;
       };

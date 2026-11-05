@@ -515,6 +515,9 @@ export default {
       },
       hockeytv_url: 'https://www.hockeytv.com',
       hideDivisionButton: true,
+      player_stats_all_time: {
+         show_filters: true,
+      },
       'game-summary': {
          'hide-official-numbers': true,
       },
