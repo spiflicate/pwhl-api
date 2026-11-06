@@ -20,12 +20,16 @@
  *    --report <path>    write the Markdown report there, and keep it
  *                       current while running
  *    --samples <dir>    save each response that brings a new finding
- *    --update           merge every live shape into the baseline
+ *    --update           merge every live shape into live-baseline.json
  *
  * Every poll calls the scorebar and each started game's clock. The other
  * game endpoints and `schedule.day` run on the slow cadence, and right
  * after a game's status changes. Stops when every watched game is final
  * (after one last full poll of each), after --max-min, or on Ctrl-C.
+ *
+ * Responses are compared with the daily baseline plus
+ * scripts/drift/live-baseline.json, which holds the paths only live games
+ * show and which `--update` adds to; the daily check never reads it.
  *
  * Fails when a response has a field the baseline lacks, a field of a new
  * type, or a game status `GameStatus` doesn't declare, or a call fails
@@ -34,6 +38,7 @@
  */
 import {
    appendFileSync,
+   existsSync,
    mkdirSync,
    readFileSync,
    writeFileSync,
@@ -48,11 +53,18 @@ import {
    describeTransition,
    hasStarted,
    LiveRun,
+   liveOnly,
    liveReport,
    selectGames,
    type WatchedGame,
+   withLive,
 } from './drift/live.ts';
 import type { Shape } from './drift/shape.ts';
+
+export const LIVE_BASELINE_PATH = join(
+   import.meta.dir,
+   'drift/live-baseline.json',
+);
 
 const TRANSIENT = new Set<string>([
    ErrorCategory.NETWORK,
@@ -144,9 +156,13 @@ async function main() {
    if (samples) mkdirSync(samples, { recursive: true });
 
    configure({ logLevel: 'silent', timeout: 15_000 });
-   const baseline: Record<string, Shape> = JSON.parse(
+   const daily: Record<string, Shape> = JSON.parse(
       readFileSync(BASELINE_PATH, 'utf8'),
    );
+   const live: Record<string, Shape> = existsSync(LIVE_BASELINE_PATH)
+      ? JSON.parse(readFileSync(LIVE_BASELINE_PATH, 'utf8'))
+      : {};
+   const baseline = withLive(daily, live);
 
    const first = await schedule.day(date);
    if (!first.success) {
@@ -278,10 +294,10 @@ async function main() {
          process.exit(1);
       }
       writeFileSync(
-         BASELINE_PATH,
-         `${JSON.stringify(run.updatedBaseline(), null, 3)}\n`,
+         LIVE_BASELINE_PATH,
+         `${JSON.stringify(liveOnly(daily, run.updatedBaseline()), null, 3)}\n`,
       );
-      console.log(`\nWrote ${BASELINE_PATH}`);
+      console.log(`\nWrote ${LIVE_BASELINE_PATH}`);
    }
    const text = write(stopReason);
    if (process.env.GITHUB_STEP_SUMMARY) {

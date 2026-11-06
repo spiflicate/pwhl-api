@@ -13,9 +13,14 @@ import {
    hasStarted,
    LiveRun,
    LOCATORS,
+   liveOnly,
    liveReport,
    selectGames,
+   withLive,
 } from '../../scripts/drift/live.ts';
+import liveBaseline from '../../scripts/drift/live-baseline.json' with {
+   type: 'json',
+};
 import { mergeShapes, shapeOf } from '../../scripts/drift/shape.ts';
 import {
    STATUS_PATHS,
@@ -228,4 +233,38 @@ test('every live endpoint has a daily check and a baseline', () => {
       expect(names.has(name)).toBeTrue();
       expect(name in baseline).toBeTrue();
    }
+});
+
+describe('live baseline', () => {
+   const daily = {
+      'games.clock': { $: 'object', '$.a': 'string', '$.b': 'number' },
+   };
+   const merged = {
+      'games.clock': {
+         $: 'object',
+         '$.a': 'string',
+         '$.b': 'number|string',
+         '$.power_play': 'string',
+      },
+   };
+
+   test('liveOnly keeps what the daily baseline lacks', () => {
+      expect(liveOnly(daily, merged)).toEqual({
+         'games.clock': {
+            '$.b': 'number|string',
+            '$.power_play': 'string',
+         },
+      });
+      expect(liveOnly(daily, daily)).toEqual({});
+   });
+
+   test('withLive restores the merged shapes', () => {
+      expect(withLive(daily, liveOnly(daily, merged))).toEqual(merged);
+   });
+
+   test('only names checks that are polled live', () => {
+      for (const check of Object.keys(liveBaseline)) {
+         expect(LIVE_CHECKS).toContain(check);
+      }
+   });
 });
