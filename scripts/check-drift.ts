@@ -8,7 +8,7 @@
  *
  * Fails when an endpoint is unreachable, an error response stops looking
  * the way the client expects, or a response gains, loses or retypes a
- * field. Runs on a schedule in .github/workflows/drift.yml.
+ * field, or sends a game status `GameStatus` doesn't declare. Runs on a schedule in .github/workflows/drift.yml.
  */
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -22,6 +22,11 @@ import {
    type Shape,
    shapeOf,
 } from './drift/shape.ts';
+import {
+   describeValue,
+   type UnknownValue,
+   unknownValuesFor,
+} from './drift/values.ts';
 
 export const BASELINE_PATH = join(import.meta.dir, 'drift/baseline.json');
 
@@ -38,6 +43,8 @@ interface Outcome {
    status: Status;
    detail: string;
    changes: Change[];
+   /** Game status codes outside `GameStatus` */
+   values: UnknownValue[];
    /** Removed fields on volatile checks: reported, not failed */
    notes: Change[];
    shape?: Shape;
@@ -77,7 +84,7 @@ async function evaluate(
    check: DriftCheck,
    baseline: Record<string, Shape>,
 ): Promise<Outcome> {
-   const base = { check, changes: [], notes: [] };
+   const base = { check, changes: [], values: [], notes: [] };
    const result = await call(check);
 
    if (check.expectError) {
@@ -119,9 +126,10 @@ async function evaluate(
    }
 
    const shape = shapeOf(result.data);
+   const values = unknownValuesFor(check.name, result.data);
    const expected = baseline[check.name];
    if (!expected) {
-      return { ...base, shape, status: 'no baseline', detail: '' };
+      return { ...base, shape, values, status: 'no baseline', detail: '' };
    }
 
    const all = diffShapes(expected, shape);
@@ -129,16 +137,22 @@ async function evaluate(
    const isNote = (c: Change) => check.volatile && c.kind === 'removed';
    const notes = all.filter(isNote);
    const changes = all.filter((c) => !isNote(c));
+   const detail = [
+      changes.length > 0 &&
+         `${changes.length} field change${changes.length === 1 ? '' : 's'}`,
+      values.length > 0 &&
+         `${values.length} unknown status${values.length === 1 ? '' : 'es'}`,
+   ]
+      .filter(Boolean)
+      .join(', ');
    return {
       ...base,
       shape,
       changes,
+      values,
       notes,
-      status: changes.length > 0 ? 'drift' : 'ok',
-      detail:
-         changes.length > 0
-            ? `${changes.length} field change${changes.length === 1 ? '' : 's'}`
-            : '',
+      status: changes.length > 0 || values.length > 0 ? 'drift' : 'ok',
+      detail,
    };
 }
 
@@ -181,9 +195,15 @@ function report(outcomes: Outcome[], updated: boolean): string {
       ),
    ];
    for (const o of outcomes) {
-      if (o.changes.length === 0 && o.notes.length === 0) continue;
+      if (
+         o.changes.length === 0 &&
+         o.values.length === 0 &&
+         o.notes.length === 0
+      )
+         continue;
       lines.push('', `## \`${o.check.name}\``, '');
       lines.push(...o.changes.map((c) => `- ${describe(c)}`));
+      lines.push(...o.values.map((v) => `- ${describeValue(v)}`));
       if (o.notes.length > 0) {
          lines.push(
             '',
@@ -200,7 +220,7 @@ function report(outcomes: Outcome[], updated: boolean): string {
          '',
          '- **unavailable**: the feed did not answer. Re-run the workflow; if it persists, the endpoint may have moved.',
          '- **unexpected**: the call failed or returned nothing where data or a specific error was expected.',
-         '- **drift**: update the types in `src/types/`, refresh fixtures with `scripts/trim-fixtures.ts`, then accept the new shapes with `bun run drift --update`.',
+         '- **drift**: update the types in `src/types/`, refresh fixtures with `scripts/trim-fixtures.ts`, then accept the new shapes with `bun run drift --update`. An unknown game status needs `GameStatus` (and `scripts/drift/values.ts`) widened instead; `--update` won’t accept it.',
       );
    }
    return `${lines.join('\n')}\n`;
@@ -244,15 +264,19 @@ async function main() {
    }
 
    const failed = outcomes.filter((o) => FAILING.includes(o.status));
+   // --update accepts shapes, but an unknown status needs a type change
    const blocking = update
       ? failed.filter(
-           (o) => o.status !== 'drift' && o.status !== 'no baseline',
+           (o) =>
+              o.values.length > 0 ||
+              (o.status !== 'drift' && o.status !== 'no baseline'),
         )
       : failed;
    if (blocking.length > 0) {
       for (const o of blocking) {
          console.log(`\n${o.check.name}: ${o.status} ${o.detail}`);
          for (const c of o.changes) console.log(`  ${describe(c)}`);
+         for (const v of o.values) console.log(`  ${describeValue(v)}`);
       }
       process.exit(1);
    }
