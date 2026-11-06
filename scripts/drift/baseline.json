@@ -1116,7 +1116,7 @@
       "$[].home_team_city": "string",
       "$[].home_team_code": "string",
       "$[].home_team_division": "string",
-      "$[].home_team_goals_by_period": "object",
+      "$[].home_team_goals_by_period": "array|object",
       "$[].home_team_goals_by_period.{id}": "string",
       "$[].home_team_name": "string",
       "$[].home_team_nickname": "string",

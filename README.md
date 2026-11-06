@@ -91,7 +91,7 @@ bun run check:package  # publint + are-the-types-wrong on the packed tarball
 
 ### Feed drift check
 
-The PWHL feed is undocumented and can change without notice. `bun run drift` calls every public function against the live feed (with ids for finished games and seasons) and compares each response's structure with `scripts/drift/baseline.json`. It fails when an endpoint stops answering, an error response changes, or a field is added, removed or changes type. Values are ignored, and so are fields that turn `null`.
+The PWHL feed is undocumented and can change without notice. `bun run drift` calls every public function against the live feed (with ids for finished games and seasons) and compares each response's structure with `scripts/drift/baseline.json`. It fails when an endpoint stops answering, an error response changes, or a field is added, removed or changes type. Values are ignored, and so are fields that turn `null`, except game status codes, which must be ones `GameStatus` declares (paths in `scripts/drift/values.ts`).
 
 The **Feed drift** workflow runs it daily and on demand (Actions → Feed drift → Run workflow). A failure opens one `feed-drift` issue with the report, which the next passing run closes. It is separate from CI, so upstream changes never block a PR.
 
@@ -102,6 +102,20 @@ When the feed really has changed:
 3. Accept the new shapes with `bun run drift --update` and commit the baseline.
 
 `test/unit/drift.test.ts` fails if a public function has no drift check, or if the fixtures contain fields the baseline lacks.
+
+#### Live games
+
+The daily check compares finished games, so fields that only exist while a game is on, and the brief unofficial-final status (`'3'`), are never seen. `bun run drift:live` polls games in progress instead:
+
+```sh
+bun run drift:live                    # every game today (Toronto time) that isn't final
+bun run drift:live --game 353         # just this game (repeatable)
+bun run drift:live --report live.md --samples samples/
+```
+
+Every 10 seconds (`--interval`) it calls the scorebar and each started game's clock. The other game endpoints (summary, play-by-play, ticker, box score, events, matchup, preview) and `schedule.day` run every 6th poll per game (`--slow-every`), staggered across games, and right after a game's status changes. Games that haven't started are watched from the scorebar once a minute. It stops when every game is final (after one last full poll), after `--max-min` (default 300), or on Ctrl-C.
+
+Each response is compared with the same baseline the way a volatile check is: a field the baseline lacks, a new type at a known path, or an undeclared game status is a finding; a baseline field a live response lacks is only listed. The report shows which statuses each endpoint was seen in, every status change with period and clock, and where each finding first appeared. `--samples` saves each response that brought a new finding. Many first findings are baseline gaps: check that the types cover the field, then accept the shapes with `bun run drift:live --update`. The **Feed drift (live games)** workflow runs it by hand (Actions → Feed drift (live games) → Run workflow); it files no issues.
 
 ### Releasing
 
