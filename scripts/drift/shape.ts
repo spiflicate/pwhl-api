@@ -128,3 +128,23 @@ function couldHold(path: string, live: Shape): boolean {
    if (parent === undefined) return false;
    return (live[parent] ?? '').split('|').includes('object');
 }
+
+/**
+ * Every path and kind seen in either shape, for building a baseline
+ * from many responses (a live game's fields over its whole length).
+ */
+export function mergeShapes(a: Shape, b: Shape): Shape {
+   const kinds = new Map<string, Set<string>>();
+   for (const shape of [a, b]) {
+      for (const [path, k] of Object.entries(shape)) {
+         const seen = kinds.get(path) ?? new Set<string>();
+         for (const kind of k.split('|')) seen.add(kind);
+         kinds.set(path, seen);
+      }
+   }
+   const out: Shape = {};
+   for (const path of [...kinds.keys()].sort()) {
+      out[path] = [...(kinds.get(path) ?? [])].sort().join('|');
+   }
+   return out;
+}
