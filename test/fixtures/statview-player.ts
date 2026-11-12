@@ -1718,6 +1718,10 @@ export default {
          abbreviation: 'Home town',
          fullText: 'Home town',
       },
+      minor_hockey_org: {
+         abbreviation: 'Minor Hockey Org',
+         fullText: 'Minor Hockey Org',
+      },
       player_season_shots: {
          abbreviation: 'Season Shots',
          fullText: 'Season Shots',
