@@ -1,11 +1,14 @@
 /**
  * Record LeagueStat's Firebase live feed for the PWHL to a JSONL file.
  *
- *    bun scripts/record-firebase.ts --out firebase.jsonl
+ *    bun scripts/record-firebase.ts --game 353 --out firebase.jsonl
  *    bun scripts/record-firebase.ts --path svf/pwhl/runningclock --max-min 300
  *
- * Opens a Firebase REST event stream on each --path (repeatable, default
- * svf/pwhl/runningclock) and writes every event with the time it arrived.
+ * Opens a Firebase REST event stream on each path and writes every event
+ * with the time it arrived. --game <id> (repeatable) adds that game in every
+ * section LeagueStat's game centre reads, in English (1) and French (2);
+ * --path <path> (repeatable) adds any other path. The running clock of every
+ * game (svf/pwhl/runningclock) is always recorded.
  * Every --snapshot-s seconds (default 60) it also writes a full read of each
  * path, so a dropped stream loses at most that much. Reconnects on errors.
  * Stops after --max-min minutes (default 300) or on Ctrl-C.
@@ -21,8 +24,23 @@ const option = (name: string) => {
    const i = args.indexOf(name);
    return i >= 0 ? args[i + 1] : undefined;
 };
-const paths = args.flatMap((a, i) => (args[i - 1] === '--path' ? [a] : []));
-if (paths.length === 0) paths.push('svf/pwhl/runningclock');
+const SECTIONS = [
+   'publishedclock',
+   'goalssummary',
+   'penaltiessummary',
+   'shotssummary',
+   'goals',
+];
+const after = (name: string) =>
+   args.flatMap((a, i) => (args[i - 1] === name ? [a] : []));
+const paths = ['svf/pwhl/runningclock', ...after('--path')];
+for (const game of after('--game')) {
+   for (const section of SECTIONS) {
+      for (const lang of [1, 2]) {
+         paths.push(`svf/pwhl/${section}/${lang}/games/${game}`);
+      }
+   }
+}
 const out = option('--out') ?? 'firebase.jsonl';
 const snapshotMs = Number(option('--snapshot-s') ?? 60) * 1000;
 const deadline = Date.now() + Number(option('--max-min') ?? 300) * 60_000;

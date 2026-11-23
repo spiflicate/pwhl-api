@@ -1,0 +1,47 @@
+# Records LeagueStat's Firebase live feed (running clock, published clock,
+# goals and shot and penalty summaries) for the games given, with
+# scripts/record-firebase.ts. Started by hand before games (Actions →
+# Record live feed → Run workflow). The recording is the live-feed-recording
+# artifact: one JSONL line per stream event, plus a full read of each path
+# every minute.
+name: Record live feed
+
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: Game ids to record, space-separated
+        required: true
+      max_minutes:
+        description: Stop after this many minutes
+        required: false
+        default: '300'
+
+permissions:
+  contents: read
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+
+      - name: Record
+        env:
+          GAMES: ${{ inputs.games }}
+          MAX_MINUTES: ${{ inputs.max_minutes }}
+        run: |
+          args=()
+          for game in $GAMES; do args+=(--game "$game"); done
+          bun scripts/record-firebase.ts --out live-feed.jsonl \
+            --max-min "$MAX_MINUTES" "${args[@]}"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-feed-recording
+          path: live-feed.jsonl
+          if-no-files-found: warn
