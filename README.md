@@ -55,7 +55,7 @@ Some things to know about this feed:
 
 - A game appears only once the scorekeeper starts publishing, so reads return `null` before then and for unknown ids.
 - Unlike the HockeyTech feed, values keep their JSON types (numbers and booleans), and per-period values are arrays indexed by period with `null` at index 0.
-- Values are revised as the scorekeeper corrects them: goals gain their on-ice players and power-play flags minutes later, and the final can undo what the unofficial final showed (game 353 showed an overtime goal that the final removed). Treat live values as provisional until `publishedClock` says `Final`.
+- Values are revised as the scorekeeper enters and corrects them: goals gain their on-ice players and power-play flags minutes after they're scored. In game 353, a preseason game, the unofficial final also showed an overtime period and goal that the final no longer had. Treat live values as provisional until `publishedClock` says `Final`.
 - The `publishedclock`, summary and `goals` sections follow the configured language (`configure({ language: 'fr' })`); the running clock has none.
 
 ### Raw values
