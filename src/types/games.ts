@@ -8,6 +8,7 @@ import type {
    GameStatus,
    NumericBoolean,
    NumericString,
+   PhpArray,
 } from './common.ts';
 
 /** A player embedded in gc events */
@@ -324,9 +325,10 @@ export interface GameLineup {
       rookie: NumericBoolean;
       seconds: number;
       time: null | string;
-      shots_against: number;
-      goals_against: number;
-      saves: number;
+      /** Can be strings while the game is on; numbers once it is final */
+      shots_against: number | NumericString;
+      goals_against: number | NumericString;
+      saves: number | NumericString;
       goals: number;
       assists: number;
       pim: number;
@@ -1008,7 +1010,8 @@ export interface PreviewTeamRecord {
    power_play_goals: number;
    times_short_handed: number;
    power_play_goals_against: number;
-   last_game: string;
+   /** `false` before the team's first game of the season */
+   last_game: string | false;
    gamesPlayed: number;
    gp: number;
    pp_away: {
@@ -1053,7 +1056,8 @@ export interface PreviewTeamRecord {
       bench_minutes: number;
       penalties_per_game: number;
    };
-   longest_player_streaks: {
+   /** `[]` before the team's first game of the season */
+   longest_player_streaks: PhpArray<{
       assists: {
          player_id: NumericString;
          first_name: string;
@@ -1081,7 +1085,7 @@ export interface PreviewTeamRecord {
          points: number;
          length: number;
       }[];
-   };
+   }>;
    lastGames: {
       id: NumericString;
       date_played: string;
@@ -1096,7 +1100,8 @@ export interface PreviewTeamRecord {
       visiting_goal_count: NumericString;
       winner: NumericString;
    }[];
-   rookie: {
+   /** `[]` before the team's first game of the season */
+   rookie: PhpArray<{
       points: number;
       assists: number;
       first_name: string;
@@ -1106,7 +1111,7 @@ export interface PreviewTeamRecord {
       player_id: NumericString;
       penalty_minutes?: number;
       goals: number;
-   };
+   }>;
    leadingScorers: {
       points: number;
       assists: number;
@@ -1118,7 +1123,8 @@ export interface PreviewTeamRecord {
       penalty_minutes?: number;
       goals: number;
    }[];
-   mostPIM: {
+   /** `[]` before the team's first game of the season */
+   mostPIM: PhpArray<{
       assists: number;
       goals: number;
       points: number;
@@ -1128,7 +1134,7 @@ export interface PreviewTeamRecord {
       player_id: NumericString;
       penalty_minutes: number;
       jersey_number: NumericString;
-   };
+   }>;
    all_w: number;
    all_l: number;
    all_t: number;
@@ -1156,9 +1162,10 @@ export interface PreviewLineup {
       rookie: NumericBoolean;
       seconds: number;
       time: null | string;
-      shots_against: number;
-      goals_against: number;
-      saves: number;
+      /** Can be strings while the game is on; numbers once it is final */
+      shots_against: number | NumericString;
+      goals_against: number | NumericString;
+      saves: number | NumericString;
       goals: number;
       assists: number;
       pim: number;
