@@ -21,12 +21,19 @@ export interface LiveRunningClock {
       /** "00"–"59", or "-" before the game */
       Seconds: string;
       Running: boolean;
-      /** Period number: "1" before the game, a number once it starts */
+      /**
+       * Period number: "1" before the game, a number while it is played,
+       * and a string again after it (game 353: "4", then "3" once the
+       * overtime was removed during the unofficial final, still "3" at final)
+       */
       period: string | number;
    };
    /** YYYY-MM-DD */
    DatePlayed: string;
-   /** Same codes as `GameStatus`, as a number */
+   /**
+    * Same codes as `GameStatus`, as a number. Can step back: game 353 went
+    * 4, 3, 4 within four seconds after the final
+    */
    status_id: number;
 }
 
@@ -40,7 +47,10 @@ export interface LivePublishedClock {
    PeriodLongName: string;
    /** e.g. "1", "OT1" */
    PeriodShortName: string;
-   /** e.g. "In Progress (15:18 remaining in 1st)", "Unofficial Final SO" */
+   /**
+    * e.g. "In Progress (15:18 remaining in 1st)", "In Progress SO",
+    * "Unofficial Final SO"
+    */
    ProgressString: string;
    Started: boolean;
    Final: boolean;
@@ -75,6 +85,11 @@ export interface LiveGoalsSummary {
    HomePowerPlayAttempts: number;
    VisitorPowerPlayGoals: number;
    VisitorPowerPlayAttempts: number;
+   /**
+    * While true, a team's goal total (and its shot total in the shots
+    * summary) can be one more than its by-period values add up to.
+    * There is no other shootout data
+    */
    Shootout: boolean;
 }
 

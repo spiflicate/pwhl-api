@@ -325,10 +325,14 @@ export interface GameLineup {
       rookie: NumericBoolean;
       seconds: number;
       time: null | string;
-      /** Can be strings while the game is on; numbers once it is final */
-      shots_against: number | NumericString;
-      goals_against: number | NumericString;
-      saves: number | NumericString;
+      /**
+       * `"-"` for the starting goalies as a game begins (game 353: the
+       * first minutes of the 1st); numbers otherwise, `0` for a backup who
+       * hasn't played
+       */
+      shots_against: number | string;
+      goals_against: number | string;
+      saves: number | string;
       goals: number;
       assists: number;
       pim: number;
@@ -1010,7 +1014,10 @@ export interface PreviewTeamRecord {
    power_play_goals: number;
    times_short_handed: number;
    power_play_goals_against: number;
-   /** `false` before the team's first game of the season */
+   /**
+    * The team's previous game, which can be from an earlier season, e.g.
+    * "2-1 L @ Montréal (2026-05-12) Final"; `false` when it has none
+    */
    last_game: string | false;
    gamesPlayed: number;
    gp: number;
@@ -1162,10 +1169,14 @@ export interface PreviewLineup {
       rookie: NumericBoolean;
       seconds: number;
       time: null | string;
-      /** Can be strings while the game is on; numbers once it is final */
-      shots_against: number | NumericString;
-      goals_against: number | NumericString;
-      saves: number | NumericString;
+      /**
+       * `"-"` for the starting goalies as a game begins (game 353: the
+       * first minutes of the 1st); numbers otherwise, `0` for a backup who
+       * hasn't played
+       */
+      shots_against: number | string;
+      goals_against: number | string;
+      saves: number | string;
       goals: number;
       assists: number;
       pim: number;
