@@ -131,16 +131,17 @@ export interface LiveGoal {
    /** The scorer's goal count, including this one */
    ScorerGoalNumber: number;
    ScorerPlayerImageURL: string;
-   Assist1PlayerId: number;
-   Assist1PlayerFirstName: string;
-   Assist1PlayerLastName: string;
-   Assist1PlayerJerseyNumber: number;
-   Assist1PlayerNumAssists: number;
-   Assist2PlayerId: number;
-   Assist2PlayerFirstName: string;
-   Assist2PlayerLastName: string;
-   Assist2PlayerJerseyNumber: number;
-   Assist2PlayerNumAssists: number;
+   /** The `Assist1…` and `Assist2…` fields are left out when there is no such assist */
+   Assist1PlayerId?: number;
+   Assist1PlayerFirstName?: string;
+   Assist1PlayerLastName?: string;
+   Assist1PlayerJerseyNumber?: number;
+   Assist1PlayerNumAssists?: number;
+   Assist2PlayerId?: number;
+   Assist2PlayerFirstName?: string;
+   Assist2PlayerLastName?: string;
+   Assist2PlayerJerseyNumber?: number;
+   Assist2PlayerNumAssists?: number;
    /** 1 or 0 */
    PowerPlay: number;
    /** 1 or 0 */
@@ -149,8 +150,8 @@ export interface LiveGoal {
    EmptyNet: number;
    /** 1 or 0 */
    PenaltyShot: number;
-   /** Skaters on the ice for the scoring team */
-   PlusPlayers: LivePlusPlayer[];
+   /** Players credited as on the ice; left out on an unassisted goal */
+   PlusPlayers?: LivePlusPlayer[];
 }
 
 /** `goals/<lang>/games/<id>`: only `DatePlayed` until the first goal */
