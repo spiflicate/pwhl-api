@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `Coach.roster` on `games.summary` coaches: HockeyTech started sending this
+  staff flag in November 2026.
+
 ## [0.1.0]
 
 First release.

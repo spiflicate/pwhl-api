@@ -2234,6 +2234,7 @@ export default {
                   first_name: 'Danièle',
                   description: 'General Manager',
                   person_role_id: '4',
+                  roster: '1',
                   person_id: '305',
                },
                {
@@ -2242,6 +2243,7 @@ export default {
                   first_name: 'Kori',
                   description: 'Head Coach',
                   person_role_id: '2',
+                  roster: '1',
                   person_id: '97',
                },
             ],
@@ -2252,6 +2254,7 @@ export default {
                   first_name: 'Meghan',
                   description: 'General Manager',
                   person_role_id: '4',
+                  roster: '1',
                   person_id: '317',
                },
                {
@@ -2260,6 +2263,7 @@ export default {
                   first_name: 'Steve',
                   description: 'Head Coach',
                   person_role_id: '2',
+                  roster: '1',
                   person_id: '474',
                },
             ],

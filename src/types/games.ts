@@ -279,6 +279,8 @@ export interface Coach {
    first_name: string;
    description: string;
    person_role_id: NumericString;
+   /** Staff roster flag; the feed has only sent "1" so far (added 2026-11) */
+   roster: NumericBoolean;
    person_id: NumericString;
 }
 
