@@ -22,8 +22,9 @@
  *    --samples <dir>    save each response that brings a new finding
  *    --update           merge every live shape into live-baseline.json
  *
- * Every poll calls the scorebar and each started game's clock. The other
- * game endpoints and `schedule.day` run on the slow cadence, and right
+ * Every poll calls the scorebar and each started game's clock and Firebase
+ * running clock. The other game endpoints, the other Firebase sections and
+ * `schedule.day` run on the slow cadence, and right
  * after a game's status changes. Stops when every watched game is final
  * (after one last full poll of each), after --max-min, or on Ctrl-C.
  *
@@ -44,7 +45,7 @@ import {
    writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
-import { games as g, schedule } from '#/api/index.ts';
+import { games as g, live, schedule } from '#/api/index.ts';
 import type { APIResult } from '#/client/types.ts';
 import { configure } from '#/config/index.ts';
 import { ErrorCategory, PWHLError } from '#/errors/index.ts';
@@ -82,6 +83,7 @@ interface GameEndpoint {
 /** Polled every time, so the short unofficial-final status is caught */
 const FAST: GameEndpoint[] = [
    { name: 'games.clock', run: (id) => g.clock(id) },
+   { name: 'live.runningClock', run: (id) => live.runningClock(id) },
 ];
 
 /** Polled on the slow cadence and after a status change */
@@ -93,6 +95,14 @@ const SLOW: GameEndpoint[] = [
    { name: 'games.events', run: (id) => g.events(id) },
    { name: 'games.matchup', run: (id) => g.matchup(id) },
    { name: 'games.preview', run: (id) => g.preview(id) },
+   { name: 'live.publishedClock', run: (id) => live.publishedClock(id) },
+   { name: 'live.goalsSummary', run: (id) => live.goalsSummary(id) },
+   {
+      name: 'live.penaltiesSummary',
+      run: (id) => live.penaltiesSummary(id),
+   },
+   { name: 'live.shotsSummary', run: (id) => live.shotsSummary(id) },
+   { name: 'live.goals', run: (id) => live.goals(id) },
 ];
 
 const SCOREBAR = () => schedule.scorebar({ daysBack: 1, daysAhead: 1 });

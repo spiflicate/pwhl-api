@@ -5,6 +5,7 @@
  */
 import {
    games,
+   live,
    players,
    playoffs,
    schedule,
@@ -23,6 +24,30 @@ const GAME = 326;
 const PLAYER = 52;
 const GOALIE = 262;
 const GAME_DATE = '2026-04-25'; // GAME was played this day
+
+/**
+ * Firebase only holds recent games, and clears a game's sections some time
+ * after it ends (game 310 from April 2026 is left only in the running
+ * clock). So each live check reads the most recent final game the running
+ * clock lists that still has data, and an empty result is normal.
+ */
+function latestLive(
+   read: (id: number) => Promise<APIResult<unknown>>,
+): () => Promise<APIResult<unknown>> {
+   return async () => {
+      const clocks = await live.runningClocks();
+      if (!clocks.success) return clocks;
+      const finals = Object.entries(clocks.data ?? {})
+         .filter(([, c]) => c.status_id === 4)
+         .map(([id]) => Number(id))
+         .sort((a, b) => b - a);
+      for (const id of finals) {
+         const result = await read(id);
+         if (!result.success || result.data !== null) return result;
+      }
+      return { success: true, data: null };
+   };
+}
 
 export interface DriftCheck {
    /** `namespace.function`, plus a variant in parentheses when needed */
@@ -164,6 +189,41 @@ export const checks: DriftCheck[] = [
    { name: 'games.boxScore', run: () => games.boxScore(GAME) },
    { name: 'games.events', run: () => games.events(GAME) },
    { name: 'games.matchup', run: () => games.matchup(GAME) },
+   {
+      name: 'live.runningClocks',
+      run: () => live.runningClocks(),
+      volatile: true,
+   },
+   {
+      name: 'live.runningClock',
+      run: latestLive((id) => live.runningClock(id)),
+      volatile: true,
+   },
+   {
+      name: 'live.publishedClock',
+      run: latestLive((id) => live.publishedClock(id)),
+      volatile: true,
+   },
+   {
+      name: 'live.goalsSummary',
+      run: latestLive((id) => live.goalsSummary(id)),
+      volatile: true,
+   },
+   {
+      name: 'live.penaltiesSummary',
+      run: latestLive((id) => live.penaltiesSummary(id)),
+      volatile: true,
+   },
+   {
+      name: 'live.shotsSummary',
+      run: latestLive((id) => live.shotsSummary(id)),
+      volatile: true,
+   },
+   {
+      name: 'live.goals',
+      run: latestLive((id) => live.goals(id)),
+      volatile: true,
+   },
 
    // Error behaviour the client depends on
    {

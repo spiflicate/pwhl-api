@@ -26,6 +26,10 @@ export const STATUS_PATHS: Readonly<Record<string, readonly string[]>> = {
    'playoffs.bracket': ['$.rounds[].matchups[].games[].status'],
    'games.summary': ['$.meta.status'],
    'games.clock': ['$.status'],
+   // Firebase sends the same codes as numbers
+   'live.runningClocks': ['$.games.{id}.status_id'],
+   'live.runningClock': ['$.status_id'],
+   'live.publishedClock': ['$.StatusId'],
 };
 
 /** The values at a shape-style path (`$.a[].b`) */
@@ -46,7 +50,13 @@ export function valuesAt(data: unknown, path: string): unknown[] {
             !Array.isArray(v)
          ) {
             const key = step.slice(1);
-            if (key in v) next.push((v as Record<string, unknown>)[key]);
+            const row = v as Record<string, unknown>;
+            // `{id}` stands for every numeric key, as in shapes
+            if (key === '{id}') {
+               for (const [k, child] of Object.entries(row)) {
+                  if (/^\d+$/.test(k)) next.push(child);
+               }
+            } else if (key in row) next.push(row[key]);
          }
       }
       current = next;
@@ -72,8 +82,13 @@ export function unknownValuesFor(
    const found = new Map<string, UnknownValue>();
    for (const path of STATUS_PATHS[check] ?? []) {
       for (const value of valuesAt(data, path)) {
-         if (typeof value === 'string' && !GAME_STATUSES.has(value)) {
-            found.set(`${path}=${value}`, { kind: 'status', path, value });
+         const code = typeof value === 'number' ? String(value) : value;
+         if (typeof code === 'string' && !GAME_STATUSES.has(code)) {
+            found.set(`${path}=${code}`, {
+               kind: 'status',
+               path,
+               value: code,
+            });
          }
       }
    }
