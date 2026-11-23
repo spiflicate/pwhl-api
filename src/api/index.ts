@@ -1,4 +1,5 @@
 export * as games from './games.ts';
+export * as live from './live.ts';
 export * as players from './players.ts';
 export * as playoffs from './playoffs.ts';
 export * as schedule from './schedule.ts';

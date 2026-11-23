@@ -10,6 +10,12 @@ export type LogLevel = 'silent' | 'error' | 'warn' | 'info' | 'debug';
 export interface PWHLConfig {
    /** HockeyTech feed endpoint. `cluster.leaguestat.com/feed/` also works. */
    baseUrl: string;
+   /**
+    * LeagueStat's Firebase Realtime Database, which carries live game data
+    * (running clock, goals, shots). Sent as `firebaseUrl` by
+    * `seasons.bootstrap()`.
+    */
+   firebaseUrl: string;
    /** Public site key shipped in thepwhl.com's JavaScript. */
    key: string;
    /** HockeyTech client code for the league. */
@@ -28,6 +34,7 @@ export interface PWHLConfig {
 
 export const DEFAULT_CONFIG: Readonly<PWHLConfig> = Object.freeze({
    baseUrl: 'https://lscluster.hockeytech.com/feed/index.php',
+   firebaseUrl: 'https://leaguestat-b9523.firebaseio.com',
    key: '446521baf8c38984',
    clientCode: 'pwhl',
    leagueId: 1,
