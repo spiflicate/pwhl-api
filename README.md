@@ -36,8 +36,27 @@ const boxScore = await games.summary(210);
 | `standings` | `season`, `table`, `specialTeams`                                                                                |
 | `playoffs`  | `bracket`                                                                                                        |
 | `games`     | `summary`, `playByPlay`, `ticker`, `clock`, `preview`, `boxScore`, `events`, `matchup`                           |
+| `live`      | `runningClock`, `runningClocks`, `publishedClock`, `goalsSummary`, `penaltiesSummary`, `shotsSummary`, `goals`, `watch` |
 
-Live game data from LeagueStat's Firebase feed (running clock, live events) is not covered yet; it only returns data during the season.
+### Live games
+
+`live` reads LeagueStat's Firebase feed, which the league's game centre uses for the running clock, goals and shot and penalty totals while a game is on. Each function reads one game once; `live.watch` follows one with Firebase's event stream and calls back with the whole value on every change:
+
+```ts
+import { live } from 'pwhl-api';
+
+const clock = await live.runningClock(353);
+const stop = live.watch('goals', 353, (goals) => {
+   console.log(Object.values(goals?.GameGoals ?? {}).length, 'goals');
+});
+```
+
+Some things to know about this feed:
+
+- A game appears only once the scorekeeper starts publishing, so reads return `null` before then and for unknown ids.
+- Unlike the HockeyTech feed, values keep their JSON types (numbers and booleans), and per-period values are arrays indexed by period with `null` at index 0.
+- Values are revised as the scorekeeper corrects them: goals gain their on-ice players and power-play flags minutes later, and the final can undo what the unofficial final showed (game 353 showed an overtime goal that the final removed). Treat live values as provisional until `publishedClock` says `Final`.
+- The `publishedclock`, summary and `goals` sections follow the configured language (`configure({ language: 'fr' })`); the running clock has none.
 
 ### Raw values
 
@@ -119,7 +138,7 @@ Each response is compared with the daily baseline plus `scripts/drift/live-basel
 
 #### Recording the Firebase feed
 
-The running clock and live events come from LeagueStat's Firebase feed, which the library doesn't read yet. `scripts/record-firebase.ts` records it while games are on, as one JSONL line per stream event plus a full read of each path every minute:
+`scripts/record-firebase.ts` records the Firebase feed that `live` reads while games are on, for checking the types against new data. It writes one JSONL line per stream event plus a full read of each path every minute:
 
 ```sh
 bun scripts/record-firebase.ts --game 353 --out live-feed.jsonl
