@@ -150,7 +150,11 @@ export interface LiveGoal {
    EmptyNet: number;
    /** 1 or 0 */
    PenaltyShot: number;
-   /** Players credited as on the ice; left out on an unassisted goal */
+   /**
+    * Players credited as on the ice. Left out until the scorekeeper enters
+    * them, which can be minutes after the goal; goals are revised in place
+    * (a goal can turn into a power-play goal later, too).
+    */
    PlusPlayers?: LivePlusPlayer[];
 }
 
