@@ -104,21 +104,59 @@ export interface LivePenaltiesSummary {
    };
 }
 
-/** One goal in `goals/<lang>/games/<id>` (draft from the game centre code; not yet seen) */
+/** A player on the ice for a goal, in a goal's `PlusPlayers` */
+export interface LivePlusPlayer {
+   Id: number;
+   FirstName: string;
+   LastName: string;
+   Jersey: number;
+}
+
+/** One goal in `goals/<lang>/games/<id>` */
 export interface LiveGoal {
+   /** Event id, the goal's key in `GameGoals` */
+   LSEventId: number;
+   IsHome: boolean;
+   Period: number;
+   /** e.g. "1st" */
    PeriodLongName: string;
-   /** Game time of the goal, e.g. "12:34" */
+   /** e.g. "1" */
+   PeriodShortName: string;
+   /** Elapsed time in the period, e.g. "10:35" */
    Time: string;
    ScorerPlayerId: number;
    ScorerPlayerFirstName: string;
    ScorerPlayerLastName: string;
-   IsHome: boolean;
+   ScorerJerseyNumber: number;
+   /** The scorer's goal count, including this one */
+   ScorerGoalNumber: number;
+   ScorerPlayerImageURL: string;
+   Assist1PlayerId: number;
+   Assist1PlayerFirstName: string;
+   Assist1PlayerLastName: string;
+   Assist1PlayerJerseyNumber: number;
+   Assist1PlayerNumAssists: number;
+   Assist2PlayerId: number;
+   Assist2PlayerFirstName: string;
+   Assist2PlayerLastName: string;
+   Assist2PlayerJerseyNumber: number;
+   Assist2PlayerNumAssists: number;
+   /** 1 or 0 */
+   PowerPlay: number;
+   /** 1 or 0 */
+   ShortHanded: number;
+   /** 1 or 0 */
+   EmptyNet: number;
+   /** 1 or 0 */
+   PenaltyShot: number;
+   /** Skaters on the ice for the scoring team */
+   PlusPlayers: LivePlusPlayer[];
 }
 
 /** `goals/<lang>/games/<id>`: only `DatePlayed` until the first goal */
 export interface LiveGoals {
    DatePlayed: string;
-   /** Draft from the game centre code; not yet seen */
+   /** Keyed by event id (`LSEventId`) */
    GameGoals?: Record<string, LiveGoal>;
 }
 
