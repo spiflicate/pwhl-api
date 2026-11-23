@@ -117,6 +117,16 @@ Every 10 seconds (`--interval`) it calls the scorebar and each started game's cl
 
 Each response is compared with the daily baseline plus `scripts/drift/live-baseline.json`, which holds only the paths seen in games in progress, the way a volatile check is: a field the baseline lacks, a new type at a known path, or an undeclared game status is a finding; a baseline field a live response lacks is only listed. The report shows which statuses each endpoint was seen in, every status change with period and clock, and where each finding first appeared. `--samples` saves each response that brought a new finding. Many first findings are baseline gaps: check that the types cover the field, then accept the shapes with `bun run drift:live --update`. That writes only `live-baseline.json`, so `bun run drift` keeps checking finished games against `baseline.json` without reporting live-only fields as removed. The **Feed drift (live games)** workflow runs it by hand (Actions → Feed drift (live games) → Run workflow); it files no issues.
 
+#### Recording the Firebase feed
+
+The running clock and live events come from LeagueStat's Firebase feed, which the library doesn't read yet. `scripts/record-firebase.ts` records it while games are on, as one JSONL line per stream event plus a full read of each path every minute:
+
+```sh
+bun scripts/record-firebase.ts --game 353 --out live-feed.jsonl
+```
+
+The **Record live feed** workflow runs it by hand (Actions → Record live feed → Run workflow, with the game ids) and saves the `live-feed-recording` artifact.
+
 ### Releasing
 
 1. Move the `Unreleased` notes in `CHANGELOG.md` under the new version.
