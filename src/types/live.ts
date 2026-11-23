@@ -36,11 +36,11 @@ export interface LivePublishedClock {
    ClockMinutes: number;
    ClockSeconds: number;
    PeriodId: number;
-   /** e.g. "1st" */
+   /** e.g. "1st", "1st OT" */
    PeriodLongName: string;
-   /** e.g. "1" */
+   /** e.g. "1", "OT1" */
    PeriodShortName: string;
-   /** e.g. "In Progress (15:18 remaining in 1st)" */
+   /** e.g. "In Progress (15:18 remaining in 1st)", "Unofficial Final SO" */
    ProgressString: string;
    Started: boolean;
    Final: boolean;
@@ -104,7 +104,7 @@ export interface LivePenaltiesSummary {
    };
 }
 
-/** A player on the ice for a goal, in a goal's `PlusPlayers` */
+/** A player on the ice for a goal, in `PlusPlayers` or `MinusPlayers` */
 export interface LivePlusPlayer {
    Id: number;
    FirstName: string;
@@ -156,6 +156,8 @@ export interface LiveGoal {
     * (a goal can turn into a power-play goal later, too).
     */
    PlusPlayers?: LivePlusPlayer[];
+   /** Opposing players on the ice; also filled in after the goal */
+   MinusPlayers?: LivePlusPlayer[];
 }
 
 /** `goals/<lang>/games/<id>`: only `DatePlayed` until the first goal */
