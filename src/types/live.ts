@@ -23,8 +23,9 @@ export interface LiveRunningClock {
       Running: boolean;
       /**
        * Period number: "1" before the game, a number while it is played,
-       * and a string again after it (game 353: "4", then "3" once the
-       * overtime was removed during the unofficial final, still "3" at final)
+       * and a string again after it. Can go back down: in game 353, a
+       * preseason game with a practice overtime, it went 4, "4", 3, "3"
+       * when the overtime was taken out during the unofficial final
        */
       period: string | number;
    };
@@ -86,9 +87,12 @@ export interface LiveGoalsSummary {
    VisitorPowerPlayGoals: number;
    VisitorPowerPlayAttempts: number;
    /**
-    * While true, a team's goal total (and its shot total in the shots
-    * summary) can be one more than its by-period values add up to.
-    * There is no other shootout data
+    * While true, the shootout winner's goal total (and its shot total in
+    * the shots summary) can be one more than its by-period values add up to.
+    * There is no other shootout data. In preseason this can be a practice
+    * shootout after a game regulation already decided: game 353 showed it
+    * for 15 minutes of the unofficial final, then set it back to false and
+    * took the extra goal and shot out of the totals before the final
     */
    Shootout: boolean;
 }

@@ -15,6 +15,10 @@ export type NumericString = string;
 export const GameStatus = {
    NotStarted: '1',
    InProgress: '2',
+   /**
+    * Over, but not yet confirmed. In preseason this can include a practice
+    * overtime and shootout that are removed before the final
+    */
    UnofficialFinal: '3',
    Final: '4',
 } as const;
