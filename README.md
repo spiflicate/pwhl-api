@@ -36,8 +36,27 @@ const boxScore = await games.summary(210);
 | `standings` | `season`, `table`, `specialTeams`                                                                                |
 | `playoffs`  | `bracket`                                                                                                        |
 | `games`     | `summary`, `playByPlay`, `ticker`, `clock`, `preview`, `boxScore`, `events`, `matchup`                           |
+| `live`      | `runningClock`, `runningClocks`, `publishedClock`, `goalsSummary`, `penaltiesSummary`, `shotsSummary`, `goals`, `watch` |
 
-Live game data from LeagueStat's Firebase feed (running clock, live events) is not covered yet; it only returns data during the season.
+### Live games
+
+`live` reads LeagueStat's Firebase feed, which the league's game centre uses for the running clock, goals and shot and penalty totals while a game is on. Each function reads one game once; `live.watch` follows one with Firebase's event stream and calls back with the whole value on every change:
+
+```ts
+import { live } from 'pwhl-api';
+
+const clock = await live.runningClock(353);
+const stop = live.watch('goals', 353, (goals) => {
+   console.log(Object.values(goals?.GameGoals ?? {}).length, 'goals');
+});
+```
+
+Some things to know about this feed:
+
+- A game appears only once the scorekeeper starts publishing, so reads return `null` before then and for unknown ids.
+- Unlike the HockeyTech feed, values keep their JSON types (numbers and booleans), and per-period values are arrays indexed by period with `null` at index 0.
+- Values are revised as the scorekeeper enters and corrects them: goals gain their on-ice players and power-play flags minutes after they're scored. Preseason games can play an overtime period and a shootout for practice after regulation has already decided the game, and the feed scores them like real ones until the scorekeeper takes them out. Game 353 ended 2–1 in regulation, but the feed showed an overtime goal from 05:26 to 05:39 UTC and `Shootout: true`, with the shootout goal in the winner's total, from 05:31 to 05:46, during the unofficial final. Both were removed before the game went final. Treat live values as provisional until `publishedClock` says `Final`, and even then allow for a moment's flicker: game 353's status went from final back to unofficial final for four seconds.
+- The `publishedclock`, summary and `goals` sections follow the configured language (`configure({ language: 'fr' })`); the running clock has none.
 
 ### Raw values
 
@@ -91,7 +110,7 @@ bun run check:package  # publint + are-the-types-wrong on the packed tarball
 
 ### Feed drift check
 
-The PWHL feed is undocumented and can change without notice. `bun run drift` calls every public function against the live feed (with ids for finished games and seasons) and compares each response's structure with `scripts/drift/baseline.json`. It fails when an endpoint stops answering, an error response changes, or a field is added, removed or changes type. Values are ignored, and so are fields that turn `null`, except game status codes, which must be ones `GameStatus` declares (paths in `scripts/drift/values.ts`).
+The PWHL feed is undocumented and can change without notice. `bun run drift` calls every public function against the live feed (with ids for finished games and seasons) and compares each response's structure with `scripts/drift/baseline.json`. It fails when an endpoint stops answering, an error response changes, or a field is added, removed or changes type. Values are ignored, and so are fields that turn `null`, except game status codes, which must be ones `GameStatus` declares (paths in `scripts/drift/values.ts`). The `live` checks read the most recent final game Firebase still holds; Firebase clears a game's sections some time after it ends, so a `live` check with no data is normal.
 
 The **Feed drift** workflow runs it daily and on demand (Actions → Feed drift → Run workflow). A failure opens one `feed-drift` issue with the report, which the next passing run closes. It is separate from CI, so upstream changes never block a PR.
 
@@ -113,13 +132,13 @@ bun run drift:live --game 353         # just this game (repeatable)
 bun run drift:live --report live.md --samples samples/
 ```
 
-Every 10 seconds (`--interval`) it calls the scorebar and each started game's clock. The other game endpoints (summary, play-by-play, ticker, box score, events, matchup, preview) and `schedule.day` run every 6th poll per game (`--slow-every`), staggered across games, and right after a game's status changes. Games that haven't started are watched from the scorebar once a minute. It stops when every game is final (after one last full poll), after `--max-min` (default 300), or on Ctrl-C.
+Every 10 seconds (`--interval`) it calls the scorebar and each started game's clock and Firebase running clock. The other game endpoints (summary, play-by-play, ticker, box score, events, matchup, preview), the other Firebase sections and `schedule.day` run every 6th poll per game (`--slow-every`), staggered across games, and right after a game's status changes. Games that haven't started are watched from the scorebar once a minute. It stops when every game is final (after one last full poll), after `--max-min` (default 300), or on Ctrl-C.
 
 Each response is compared with the daily baseline plus `scripts/drift/live-baseline.json`, which holds only the paths seen in games in progress, the way a volatile check is: a field the baseline lacks, a new type at a known path, or an undeclared game status is a finding; a baseline field a live response lacks is only listed. The report shows which statuses each endpoint was seen in, every status change with period and clock, and where each finding first appeared. `--samples` saves each response that brought a new finding. Many first findings are baseline gaps: check that the types cover the field, then accept the shapes with `bun run drift:live --update`. That writes only `live-baseline.json`, so `bun run drift` keeps checking finished games against `baseline.json` without reporting live-only fields as removed. The **Feed drift (live games)** workflow runs it by hand (Actions → Feed drift (live games) → Run workflow); it files no issues.
 
 #### Recording the Firebase feed
 
-The running clock and live events come from LeagueStat's Firebase feed, which the library doesn't read yet. `scripts/record-firebase.ts` records it while games are on, as one JSONL line per stream event plus a full read of each path every minute:
+`scripts/record-firebase.ts` records the Firebase feed that `live` reads while games are on, for checking the types against new data. It writes one JSONL line per stream event plus a full read of each path every minute:
 
 ```sh
 bun scripts/record-firebase.ts --game 353 --out live-feed.jsonl

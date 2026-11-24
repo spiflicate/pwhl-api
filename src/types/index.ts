@@ -1,6 +1,7 @@
 export * from './common.ts';
 export * from './gamecenter.ts';
 export * from './games.ts';
+export * from './live.ts';
 export * from './players.ts';
 export * from './playoffs.ts';
 export * from './schedule.ts';

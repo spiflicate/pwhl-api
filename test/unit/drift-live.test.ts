@@ -99,6 +99,34 @@ describe('LOCATORS', () => {
       ).toEqual({ status: 'Final SO' });
       expect(LOCATORS['schedule.day']?.(day, 42)).toBeUndefined();
    });
+
+   test('read Firebase clocks', () => {
+      expect(
+         LOCATORS['live.runningClock']?.(
+            {
+               Clock: {
+                  Minutes: '13',
+                  Seconds: '44',
+                  Running: true,
+                  period: 1,
+               },
+               status_id: 2,
+            },
+            353,
+         ),
+      ).toEqual({ status: '2', moment: 'P1 13:44' });
+      expect(
+         LOCATORS['live.publishedClock']?.(
+            {
+               StatusId: 3,
+               PeriodShortName: 'OT1',
+               ClockMinutes: 0,
+               ClockSeconds: 3,
+            },
+            353,
+         ),
+      ).toEqual({ status: '3', moment: 'POT1 00:03' });
+   });
 });
 
 test('hasStarted', () => {
@@ -213,10 +241,24 @@ describe('status values', () => {
       expect(unknownValuesFor('games.clock', { status: '4' })).toEqual([]);
    });
 
+   test('checks Firebase codes, which are numbers', () => {
+      expect(
+         unknownValuesFor('live.runningClock', { status_id: 4 }),
+      ).toEqual([]);
+      expect(
+         unknownValuesFor('live.runningClocks', {
+            '310': { status_id: 4 },
+            '353': { status_id: 7 },
+         }),
+      ).toEqual([{ kind: 'status', path: '$.{id}.status_id', value: '7' }]);
+   });
+
    test('every status path is in the baseline', () => {
       const b = baseline as Record<string, Record<string, string>>;
       for (const [check, paths] of Object.entries(STATUS_PATHS)) {
-         for (const path of paths) expect(b[check]?.[path]).toBe('string');
+         // Firebase (live.*) sends the codes as numbers
+         const kind = check.startsWith('live.') ? 'number' : 'string';
+         for (const path of paths) expect(b[check]?.[path]).toBe(kind);
       }
    });
 });

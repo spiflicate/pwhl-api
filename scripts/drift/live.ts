@@ -103,6 +103,25 @@ export const LOCATORS: Readonly<
          ? seen(meta.status, meta.period, meta.game_clock)
          : undefined;
    },
+   // Firebase: numeric status codes, the clock as minutes and seconds
+   'live.runningClock': (d) => {
+      const clock = isRow(d) ? d.Clock : undefined;
+      return isRow(d) && isRow(clock)
+         ? seen(
+              d.status_id,
+              clock.period,
+              `${clock.Minutes}:${clock.Seconds}`,
+           )
+         : undefined;
+   },
+   'live.publishedClock': (d) =>
+      isRow(d)
+         ? seen(
+              d.StatusId,
+              d.PeriodShortName,
+              `${String(d.ClockMinutes).padStart(2, '0')}:${String(d.ClockSeconds).padStart(2, '0')}`,
+           )
+         : undefined,
    // Free text, e.g. "Final SO"
    'games.boxScore': (d) => {
       const details = isRow(d) ? d.details : undefined;

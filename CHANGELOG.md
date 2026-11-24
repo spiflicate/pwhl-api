@@ -10,6 +10,25 @@ All notable changes to this project are documented here. The format follows
 
 - `Coach.roster` on `games.summary` coaches: HockeyTech started sending this
   staff flag in November 2026.
+- `live` namespace for LeagueStat's Firebase feed: `runningClock`,
+  `runningClocks`, `publishedClock`, `goalsSummary`, `penaltiesSummary`,
+  `shotsSummary` and `goals` read a game once, and `watch` follows one over
+  Firebase's event stream. Types come from game 353, the 2026-27 preseason
+  opener.
+- `firebaseUrl` config option.
+
+### Fixed
+
+- Goalie `shots_against`, `goals_against` and `saves` in `games.summary` and
+  `games.preview` lineups can be strings while a game is on.
+- `games.preview` for a team's first game of the season: `last_game` is
+  `false`, and `longest_player_streaks`, `mostPIM` and `rookie` are `[]`.
+- `games.preview` and `games.matchup` for a team with no games yet leave
+  `power_play_goals` and `power_play_goals_against` out of the power-play and
+  penalty-kill totals.
+- `games.preview` leaders (`rookie`, `mostPIM`, `leadingScorers`) can have a
+  `null` `player_id` and no `jersey_number`.
+- `games.playByPlay` penalty shots leave out `goal_type_name` when saved.
 
 ## [0.1.0]
 

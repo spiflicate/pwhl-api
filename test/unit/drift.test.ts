@@ -134,7 +134,8 @@ describe('drift checks', () => {
    const names = checks.map((c) => c.name);
 
    test('cover every public function', () => {
-      const helpers = new Set(['teams.splitRoster']);
+      // live.watch streams the sections the live.* reads check
+      const helpers = new Set(['teams.splitRoster', 'live.watch']);
       const functions = Object.entries(api).flatMap(([ns, mod]) =>
          Object.keys(mod).map((fn) => `${ns}.${fn}`),
       );

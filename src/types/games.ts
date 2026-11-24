@@ -8,6 +8,7 @@ import type {
    GameStatus,
    NumericBoolean,
    NumericString,
+   PhpArray,
 } from './common.ts';
 
 /** A player embedded in gc events */
@@ -324,9 +325,14 @@ export interface GameLineup {
       rookie: NumericBoolean;
       seconds: number;
       time: null | string;
-      shots_against: number;
-      goals_against: number;
-      saves: number;
+      /**
+       * `"-"` for the starting goalies as a game begins (game 353: the
+       * first minutes of the 1st); numbers otherwise, `0` for a backup who
+       * hasn't played
+       */
+      shots_against: number | string;
+      goals_against: number | string;
+      saves: number | string;
       goals: number;
       assists: number;
       pim: number;
@@ -635,7 +641,8 @@ export interface PbpPenaltyShot {
    period_id: NumericString;
    game_goal_id: NumericString;
    s: number;
-   goal_type_name: string;
+   /** Left out when the shot is saved (`result: "saved"`) */
+   goal_type_name?: string;
    result: string;
    team_id: NumericString;
    player: PlayerRef;
@@ -1008,43 +1015,53 @@ export interface PreviewTeamRecord {
    power_play_goals: number;
    times_short_handed: number;
    power_play_goals_against: number;
-   last_game: string;
+   /**
+    * The team's previous game, which can be from an earlier season, e.g.
+    * "2-1 L @ Montréal (2026-05-12) Final"; `false` when it has none
+    */
+   last_game: string | false;
    gamesPlayed: number;
    gp: number;
    pp_away: {
       power_plays: number;
       power_player_goals: number;
-      power_play_goals: number;
+      /** Left out when the team has played no games */
+      power_play_goals?: number;
       percentage: number;
    };
    pp_home: {
       power_plays: number;
       power_player_goals: number;
-      power_play_goals: number;
+      /** Left out when the team has played no games */
+      power_play_goals?: number;
       percentage: number;
    };
    pp: {
       power_plays: number;
       power_player_goals: number;
-      power_play_goals: number;
+      /** Left out when the team has played no games */
+      power_play_goals?: number;
       percentage: number;
    };
    pk_away: {
       times_short_handed: number;
       power_player_goals_against: number;
-      power_play_goals_against: number;
+      /** Left out when the team has played no games */
+      power_play_goals_against?: number;
       percentage: number;
    };
    pk_home: {
       times_short_handed: number;
       power_player_goals_against: number;
-      power_play_goals_against: number;
+      /** Left out when the team has played no games */
+      power_play_goals_against?: number;
       percentage: number;
    };
    pk: {
       times_short_handed: number;
       power_player_goals_against: number;
-      power_play_goals_against: number;
+      /** Left out when the team has played no games */
+      power_play_goals_against?: number;
       percentage: number;
    };
    pim: {
@@ -1053,7 +1070,8 @@ export interface PreviewTeamRecord {
       bench_minutes: number;
       penalties_per_game: number;
    };
-   longest_player_streaks: {
+   /** `[]` before the team's first game of the season */
+   longest_player_streaks: PhpArray<{
       assists: {
          player_id: NumericString;
          first_name: string;
@@ -1081,7 +1099,7 @@ export interface PreviewTeamRecord {
          points: number;
          length: number;
       }[];
-   };
+   }>;
    lastGames: {
       id: NumericString;
       date_played: string;
@@ -1096,39 +1114,53 @@ export interface PreviewTeamRecord {
       visiting_goal_count: NumericString;
       winner: NumericString;
    }[];
-   rookie: {
+   /** `[]` before the team's first game of the season */
+   rookie: PhpArray<{
       points: number;
       assists: number;
       first_name: string;
       last_name: string;
       rookie: NumericBoolean;
-      jersey_number: NumericString;
-      player_id: NumericString;
+      jersey_number?: NumericString;
+      /**
+       * `null`, with `jersey_number` left out, for a player who only has
+       * penalty minutes (game 354: a rookie with no points)
+       */
+      player_id: NumericString | null;
       penalty_minutes?: number;
       goals: number;
-   };
+   }>;
    leadingScorers: {
       points: number;
       assists: number;
       first_name: string;
       last_name: string;
       rookie: NumericBoolean;
-      jersey_number: NumericString;
-      player_id: NumericString;
+      jersey_number?: NumericString;
+      /**
+       * `null`, with `jersey_number` left out, for a player who only has
+       * penalty minutes (game 354: a rookie with no points)
+       */
+      player_id: NumericString | null;
       penalty_minutes?: number;
       goals: number;
    }[];
-   mostPIM: {
+   /** `[]` before the team's first game of the season */
+   mostPIM: PhpArray<{
       assists: number;
       goals: number;
       points: number;
       first_name: string;
       last_name: string;
       rookie: NumericBoolean;
-      player_id: NumericString;
+      /**
+       * `null`, with `jersey_number` left out, for a player who only has
+       * penalty minutes (game 354: a rookie with no points)
+       */
+      player_id: NumericString | null;
       penalty_minutes: number;
-      jersey_number: NumericString;
-   };
+      jersey_number?: NumericString;
+   }>;
    all_w: number;
    all_l: number;
    all_t: number;
@@ -1156,9 +1188,14 @@ export interface PreviewLineup {
       rookie: NumericBoolean;
       seconds: number;
       time: null | string;
-      shots_against: number;
-      goals_against: number;
-      saves: number;
+      /**
+       * `"-"` for the starting goalies as a game begins (game 353: the
+       * first minutes of the 1st); numbers otherwise, `0` for a backup who
+       * hasn't played
+       */
+      shots_against: number | string;
+      goals_against: number | string;
+      saves: number | string;
       goals: number;
       assists: number;
       pim: number;

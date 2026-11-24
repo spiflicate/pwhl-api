@@ -19,6 +19,12 @@ import type {
    GoalieStatRow,
    GoalieTeamSplit,
    Leaders,
+   LiveGoals,
+   LiveGoalsSummary,
+   LivePenaltiesSummary,
+   LivePublishedClock,
+   LiveRunningClock,
+   LiveShotsSummary,
    Matchup,
    PlayByPlayEvent,
    PlayerGameByGame,
@@ -53,6 +59,12 @@ import type {
    TopScorer,
    Transactions,
 } from '#/types/index.ts';
+import liveGoals from '../fixtures/firebase-goals.ts';
+import liveGoalsSummary from '../fixtures/firebase-goalssummary.ts';
+import livePenaltiesSummary from '../fixtures/firebase-penaltiessummary.ts';
+import livePublishedClock from '../fixtures/firebase-publishedclock.ts';
+import liveRunningClock from '../fixtures/firebase-runningclock.ts';
+import liveShotsSummary from '../fixtures/firebase-shotssummary.ts';
 import clock from '../fixtures/gc-clock.ts';
 import summary from '../fixtures/gc-gamesummary.ts';
 import preview from '../fixtures/gc-preview.ts';
@@ -199,6 +211,12 @@ fits<GamePreview>()(mut(preview.GC.Preview));
 fits<BoxScore>()(mut(boxScore));
 fits<GameEvent[]>()(mut(events));
 fits<Matchup>()(mut(matchup));
+fits<LiveRunningClock[]>()(mut(liveRunningClock));
+fits<LivePublishedClock[]>()(mut(livePublishedClock));
+fits<LiveGoalsSummary[]>()(mut(liveGoalsSummary));
+fits<LivePenaltiesSummary[]>()(mut(livePenaltiesSummary));
+fits<LiveShotsSummary[]>()(mut(liveShotsSummary));
+fits<LiveGoals[]>()(mut(liveGoals));
 
 test('captured fixtures fit the response types (checked by tsc)', () => {
    expect(seasons.SiteKit.Seasons.length).toBeGreaterThan(0);

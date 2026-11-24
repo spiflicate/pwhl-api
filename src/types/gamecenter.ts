@@ -132,14 +132,16 @@ export interface CenterLeaderStats {
 export interface CenterPowerPlay {
    power_plays: number;
    power_player_goals: number;
-   power_play_goals: number;
+   /** Left out when the team has played no games */
+   power_play_goals?: number;
    percentage: number;
 }
 
 export interface CenterPenaltyKill {
    times_short_handed: number;
    power_player_goals_against: number;
-   power_play_goals_against: number;
+   /** Left out when the team has played no games */
+   power_play_goals_against?: number;
    percentage: number;
 }
 
