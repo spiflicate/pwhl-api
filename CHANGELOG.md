@@ -23,6 +23,12 @@ All notable changes to this project are documented here. The format follows
   `games.preview` lineups can be strings while a game is on.
 - `games.preview` for a team's first game of the season: `last_game` is
   `false`, and `longest_player_streaks`, `mostPIM` and `rookie` are `[]`.
+- `games.preview` and `games.matchup` for a team with no games yet leave
+  `power_play_goals` and `power_play_goals_against` out of the power-play and
+  penalty-kill totals.
+- `games.preview` leaders (`rookie`, `mostPIM`, `leadingScorers`) can have a
+  `null` `player_id` and no `jersey_number`.
+- `games.playByPlay` penalty shots leave out `goal_type_name` when saved.
 
 ## [0.1.0]
 

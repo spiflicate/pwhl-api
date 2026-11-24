@@ -641,7 +641,8 @@ export interface PbpPenaltyShot {
    period_id: NumericString;
    game_goal_id: NumericString;
    s: number;
-   goal_type_name: string;
+   /** Left out when the shot is saved (`result: "saved"`) */
+   goal_type_name?: string;
    result: string;
    team_id: NumericString;
    player: PlayerRef;
@@ -1024,37 +1025,43 @@ export interface PreviewTeamRecord {
    pp_away: {
       power_plays: number;
       power_player_goals: number;
-      power_play_goals: number;
+      /** Left out when the team has played no games */
+      power_play_goals?: number;
       percentage: number;
    };
    pp_home: {
       power_plays: number;
       power_player_goals: number;
-      power_play_goals: number;
+      /** Left out when the team has played no games */
+      power_play_goals?: number;
       percentage: number;
    };
    pp: {
       power_plays: number;
       power_player_goals: number;
-      power_play_goals: number;
+      /** Left out when the team has played no games */
+      power_play_goals?: number;
       percentage: number;
    };
    pk_away: {
       times_short_handed: number;
       power_player_goals_against: number;
-      power_play_goals_against: number;
+      /** Left out when the team has played no games */
+      power_play_goals_against?: number;
       percentage: number;
    };
    pk_home: {
       times_short_handed: number;
       power_player_goals_against: number;
-      power_play_goals_against: number;
+      /** Left out when the team has played no games */
+      power_play_goals_against?: number;
       percentage: number;
    };
    pk: {
       times_short_handed: number;
       power_player_goals_against: number;
-      power_play_goals_against: number;
+      /** Left out when the team has played no games */
+      power_play_goals_against?: number;
       percentage: number;
    };
    pim: {
@@ -1114,8 +1121,12 @@ export interface PreviewTeamRecord {
       first_name: string;
       last_name: string;
       rookie: NumericBoolean;
-      jersey_number: NumericString;
-      player_id: NumericString;
+      jersey_number?: NumericString;
+      /**
+       * `null`, with `jersey_number` left out, for a player who only has
+       * penalty minutes (game 354: a rookie with no points)
+       */
+      player_id: NumericString | null;
       penalty_minutes?: number;
       goals: number;
    }>;
@@ -1125,8 +1136,12 @@ export interface PreviewTeamRecord {
       first_name: string;
       last_name: string;
       rookie: NumericBoolean;
-      jersey_number: NumericString;
-      player_id: NumericString;
+      jersey_number?: NumericString;
+      /**
+       * `null`, with `jersey_number` left out, for a player who only has
+       * penalty minutes (game 354: a rookie with no points)
+       */
+      player_id: NumericString | null;
       penalty_minutes?: number;
       goals: number;
    }[];
@@ -1138,9 +1153,13 @@ export interface PreviewTeamRecord {
       first_name: string;
       last_name: string;
       rookie: NumericBoolean;
-      player_id: NumericString;
+      /**
+       * `null`, with `jersey_number` left out, for a player who only has
+       * penalty minutes (game 354: a rookie with no points)
+       */
+      player_id: NumericString | null;
       penalty_minutes: number;
-      jersey_number: NumericString;
+      jersey_number?: NumericString;
    }>;
    all_w: number;
    all_l: number;
