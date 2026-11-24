@@ -247,11 +247,10 @@ describe('status values', () => {
       ).toEqual([]);
       expect(
          unknownValuesFor('live.runningClocks', {
-            games: { '310': { status_id: 4 }, '353': { status_id: 7 } },
+            '310': { status_id: 4 },
+            '353': { status_id: 7 },
          }),
-      ).toEqual([
-         { kind: 'status', path: '$.games.{id}.status_id', value: '7' },
-      ]);
+      ).toEqual([{ kind: 'status', path: '$.{id}.status_id', value: '7' }]);
    });
 
    test('every status path is in the baseline', () => {

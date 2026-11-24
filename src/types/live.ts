@@ -23,7 +23,8 @@ export interface LiveRunningClock {
       Running: boolean;
       /**
        * Period number: "1" before the game, a number while it is played,
-       * and a string again after it. Can go back down: in game 353, a
+       * and either after it (most of the 2026-11-23 games went back to
+       * "3", game 360 stayed 3). Can go back down: in game 353, a
        * preseason game with a practice overtime, it went 4, "4", 3, "3"
        * when the overtime was taken out during the unofficial final
        */

@@ -27,7 +27,7 @@ export const STATUS_PATHS: Readonly<Record<string, readonly string[]>> = {
    'games.summary': ['$.meta.status'],
    'games.clock': ['$.status'],
    // Firebase sends the same codes as numbers
-   'live.runningClocks': ['$.games.{id}.status_id'],
+   'live.runningClocks': ['$.{id}.status_id'],
    'live.runningClock': ['$.status_id'],
    'live.publishedClock': ['$.StatusId'],
 };
