@@ -6,6 +6,10 @@
  *
  * A game appears in a section only once the scorekeeper publishes data for
  * it, so reads return `null` before then (and for unknown ids).
+ *
+ * With `language: 'fr'`, sections that have a French version fall back to
+ * English while the French one is empty: no game in the 2026-27 preseason,
+ * Montréal's included, had French data.
  */
 
 import {
@@ -16,6 +20,7 @@ import {
    stream,
 } from '#/client/firebase.ts';
 import type { APIResult } from '#/client/types.ts';
+import { config } from '#/config/index.ts';
 import type { LiveSection, LiveSections } from '#/types/index.ts';
 import { GameId, validate } from '#/utils/schemas.ts';
 
@@ -25,7 +30,18 @@ async function section<S extends LiveSection>(
 ): Promise<APIResult<LiveSections[S] | null>> {
    const v = validate(GameId, gameId, `live.${name}`);
    if (!v.ok) return v.result;
-   return read(livePath(name, v.value));
+   const result = await read<LiveSections[S] | null>(
+      livePath(name, v.value),
+   );
+   if (!fallsBack(name) || !result.success || result.data !== null) {
+      return result;
+   }
+   return read(livePath(name, v.value, 'en'));
+}
+
+/** French is configured and the section has a French version */
+function fallsBack(name: LiveSection): boolean {
+   return config.language === 'fr' && name !== 'runningclock';
 }
 
 /** Running clock of one game, updated as it ticks */
@@ -75,6 +91,9 @@ export interface WatchOptions extends StreamOptions {
  * time it changes (`null` until the game appears). Uses Firebase's REST
  * event stream, so updates arrive as the scorekeeper sends them.
  * Reconnects after errors. Returns a function that stops the watch.
+ *
+ * With `language: 'fr'`, it follows the French and English versions and
+ * reports the French value whenever there is one, the English otherwise.
  */
 export function watch<S extends LiveSection>(
    name: S,
@@ -90,8 +109,38 @@ export function watch<S extends LiveSection>(
       if (!v.result.success) options.onError?.(v.result.error);
       return stop;
    }
-   const url = liveUrl(livePath(name, v.value));
    const emit = (value: unknown) => onData(value as LiveSections[S] | null);
-   void stream(url, controller.signal, emit, options);
+   if (!fallsBack(name)) {
+      const url = liveUrl(livePath(name, v.value));
+      void stream(url, controller.signal, emit, options);
+      return stop;
+   }
+   let fr: unknown = null;
+   let en: unknown = null;
+   let enSeen = false;
+   const frUrl = liveUrl(livePath(name, v.value, 'fr'));
+   const enUrl = liveUrl(livePath(name, v.value, 'en'));
+   void stream(
+      frUrl,
+      controller.signal,
+      (value) => {
+         fr = value;
+         // An empty French value waits for English rather than reporting null
+         if (fr !== null) emit(fr);
+         else if (enSeen) emit(en);
+      },
+      options,
+   );
+   void stream(
+      enUrl,
+      controller.signal,
+      (value) => {
+         en = value;
+         enSeen = true;
+         // English only counts while French is empty
+         if (fr === null) emit(en);
+      },
+      options,
+   );
    return stop;
 }

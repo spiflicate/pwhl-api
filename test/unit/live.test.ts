@@ -134,3 +134,121 @@ describe('watch', () => {
       ]);
    });
 });
+
+describe('French fallback', () => {
+   /** Answer each Firebase path from `bodies` (null when absent) */
+   const serve = (bodies: Record<string, unknown>) => {
+      const seen: string[] = [];
+      const original = globalThis.fetch;
+      globalThis.fetch = (async (input: string | URL | Request) => {
+         const path = new URL(String(input)).pathname;
+         seen.push(path);
+         return new Response(JSON.stringify(bodies[path] ?? null));
+      }) as typeof fetch;
+      return {
+         seen,
+         restore: () => {
+            globalThis.fetch = original;
+            resetConfig();
+         },
+      };
+   };
+   const fr = '/svf/pwhl/goals/2/games/358.json';
+   const en = '/svf/pwhl/goals/1/games/358.json';
+
+   test('reads English while the French section is empty', async () => {
+      configure({ language: 'fr', logLevel: 'silent' });
+      const s = serve({ [en]: { DatePlayed: '2026-11-25' } });
+      const result = await goals(358);
+      s.restore();
+      expect(result).toEqual({
+         success: true,
+         data: { DatePlayed: '2026-11-25' },
+      });
+      expect(s.seen).toEqual([fr, en]);
+   });
+
+   test('uses French when it has data', async () => {
+      configure({ language: 'fr', logLevel: 'silent' });
+      const s = serve({
+         [fr]: { DatePlayed: 'fr' },
+         [en]: { DatePlayed: 'en' },
+      });
+      const result = await goals(358);
+      s.restore();
+      expect(result).toEqual({ success: true, data: { DatePlayed: 'fr' } });
+      expect(s.seen).toEqual([fr]);
+   });
+
+   test('English reads and the running clock never fall back', async () => {
+      configure({ logLevel: 'silent' });
+      const s = serve({});
+      await goals(358);
+      configure({ language: 'fr' });
+      await runningClock(358);
+      s.restore();
+      expect(s.seen).toEqual([en, '/svf/pwhl/runningclock/games/358.json']);
+   });
+
+   test('watch reports English, not null, while French is empty', async () => {
+      configure({ language: 'fr', logLevel: 'silent' });
+      const original = globalThis.fetch;
+      const put = (data: unknown) =>
+         `event: put\ndata: ${JSON.stringify({ path: '/', data })}\n\n`;
+      globalThis.fetch = (async (input: string | URL | Request) => {
+         const path = new URL(String(input)).pathname;
+         // French answers null first; English a moment later
+         if (path === fr) return new Response(put(null));
+         await new Promise((r) => setTimeout(r, 20));
+         return new Response(put({ DatePlayed: 'en' }));
+      }) as typeof fetch;
+      const seen: unknown[] = [];
+      await new Promise<void>((resolve) => {
+         const stop = watch(
+            'goals',
+            358,
+            (data) => {
+               seen.push(data);
+               stop();
+               resolve();
+            },
+            { retryMs: 1000 },
+         );
+      });
+      globalThis.fetch = original;
+      resetConfig();
+      expect(seen).toEqual([{ DatePlayed: 'en' }]);
+   });
+
+   test('watch reports French over English', async () => {
+      configure({ language: 'fr', logLevel: 'silent' });
+      const original = globalThis.fetch;
+      const put = (data: unknown) =>
+         `event: put\ndata: ${JSON.stringify({ path: '/', data })}\n\n`;
+      globalThis.fetch = (async (input: string | URL | Request) => {
+         const path = new URL(String(input)).pathname;
+         // English arrives first; French appears a moment later
+         if (path === en) return new Response(put({ DatePlayed: 'en' }));
+         await new Promise((r) => setTimeout(r, 20));
+         return new Response(put({ DatePlayed: 'fr' }));
+      }) as typeof fetch;
+      const seen: unknown[] = [];
+      await new Promise<void>((resolve) => {
+         const stop = watch(
+            'goals',
+            358,
+            (data) => {
+               seen.push(data);
+               if (seen.length === 2) {
+                  stop();
+                  resolve();
+               }
+            },
+            { retryMs: 1000 },
+         );
+      });
+      globalThis.fetch = original;
+      resetConfig();
+      expect(seen).toEqual([{ DatePlayed: 'en' }, { DatePlayed: 'fr' }]);
+   });
+});

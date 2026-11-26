@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- `live` with `language: 'fr'`: the published clock, summaries and goals
+  fall back to English while the French section is empty, instead of
+  returning `null` all game. No game in the 2026-27 preseason had French
+  data. `watch` follows both and switches to French if it appears.
+
 ## [0.2.0]
 
 ### Added
