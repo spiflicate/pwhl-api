@@ -56,7 +56,7 @@ Some things to know about this feed:
 - A game appears only once the scorekeeper starts publishing, so reads return `null` before then and for unknown ids.
 - Unlike the HockeyTech feed, values keep their JSON types (numbers and booleans), and per-period values are arrays indexed by period with `null` at index 0.
 - Values are revised as the scorekeeper enters and corrects them: goals gain their on-ice players and power-play flags minutes after they're scored. Preseason games can play an overtime period and a shootout for practice after regulation has already decided the game, and the feed scores them like real ones until the scorekeeper takes them out. Game 353 ended 2–1 in regulation, but the feed showed an overtime goal from 05:26 to 05:39 UTC and `Shootout: true`, with the shootout goal in the winner's total, from 05:31 to 05:46, during the unofficial final. Both were removed before the game went final. Treat live values as provisional until `publishedClock` says `Final`, and even then allow for a moment's flicker: game 353's status went from final back to unofficial final for four seconds.
-- The `publishedclock`, summary and `goals` sections follow the configured language (`configure({ language: 'fr' })`); the running clock has none.
+- The `publishedclock`, summary and `goals` sections follow the configured language (`configure({ language: 'fr' })`); the running clock has none. With French configured, reads and `watch` fall back to English while the French section is empty: no 2026-27 preseason game had French data, Montréal's home game included.
 
 ### Raw values
 

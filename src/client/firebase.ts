@@ -20,9 +20,13 @@ export interface StreamOptions {
 }
 
 /** Firebase path of one game in a section, after `/svf/<client>/` */
-export function livePath(section: LiveSection, gameId: number | string) {
+export function livePath(
+   section: LiveSection,
+   gameId: number | string,
+   language: 'en' | 'fr' = config.language,
+) {
    if (section === 'runningclock') return `runningclock/games/${gameId}`;
-   const lang = config.language === 'fr' ? 2 : 1;
+   const lang = language === 'fr' ? 2 : 1;
    return `${section}/${lang}/games/${gameId}`;
 }
 
