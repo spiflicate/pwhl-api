@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.1]
+
 ### Fixed
 
 - `live` with `language: 'fr'`: the published clock, summaries and goals
@@ -60,6 +62,7 @@ First release.
 - Live game data from LeagueStat's Firebase feed (running clock, live events).
   It only returns data during games, so it waits for the 2026-27 season.
 
-[Unreleased]: https://github.com/spiflicate/pwhl-api/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/spiflicate/pwhl-api/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/spiflicate/pwhl-api/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/spiflicate/pwhl-api/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/spiflicate/pwhl-api/releases/tag/v0.1.0
