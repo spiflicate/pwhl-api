@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 350
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
 
@@ -52,7 +52,7 @@ jobs:
           bun run drift:live --report live-report.md --samples samples \
             --max-min "$MAX_MINUTES" --interval "$INTERVAL" "${args[@]}"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: live-drift-report
